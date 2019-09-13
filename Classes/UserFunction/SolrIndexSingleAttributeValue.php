@@ -62,7 +62,7 @@ class SolrIndexSingleAttributeValue
                     $fileCollector = GeneralUtility::makeInstance(FileCollector::class);
                     $fileCollector->addFilesFromRelation(
                         'tx_pxaproductmanager_domain_model_product',
-                        TCAUtility::ATTRIBUTE_FAL_FIELD_NAME,
+                        TCAUtility::ATTRIBUTE_FAL_DB_FIELD_NAME,
                         $this->cObj->data
                     );
                     /** @var FileReference[] $allAttributeFiles */

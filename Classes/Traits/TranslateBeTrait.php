@@ -2,6 +2,8 @@
 
 namespace Pixelant\PxaProductManager\Traits;
 
+use TYPO3\CMS\Core\Localization\LanguageService;
+
 /**
  * Use if you need to translate in BE
  * @package Pixelant\PxaProductManager\Traits
@@ -22,25 +24,23 @@ trait TranslateBeTrait
      * @param array $arguments
      * @return string
      */
-    protected function translate(string $key, array $arguments = []): string
+    protected function translate(string $key, array $arguments = null): string
     {
-        if (TYPO3_MODE === 'BE') {
-            $label = $this->getLanguageService()->sL(self::$LLPATH . $key) ?? '';
+        $label = $this->getLanguageService()->sL(self::$LLPATH . $key);
 
-            if (!empty($arguments)) {
-                $label = vsprintf($label, $arguments);
-            }
+        if (!empty($arguments)) {
+            $label = vsprintf($label, $arguments);
         }
 
-        return $label ?? '';
+        return $label;
     }
 
     /**
      * Return language service instance
      *
-     * @return \TYPO3\CMS\Lang\LanguageService
+     * @return LanguageService
      */
-    protected function getLanguageService()
+    protected function getLanguageService(): LanguageService
     {
         return $GLOBALS['LANG'];
     }

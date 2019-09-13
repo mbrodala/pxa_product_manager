@@ -26,21 +26,8 @@ class ProductEditFormInitialize implements FormDataProviderInterface
     use TranslateBeTrait;
 
     /**
-     * Hold static configuration for attributes fields
+     * Create TCA configuration
      *
-     * @var array
-     */
-    protected $attributeTCAConfiguration = [];
-
-    /**
-     * Initialize some vars
-     */
-    public function __construct()
-    {
-        $this->attributeTCAConfiguration = TCAUtility::getDefaultAttributesTCAConfiguration();
-    }
-
-    /**
      * @param array $result
      * @return array
      */
@@ -308,6 +295,7 @@ class ProductEditFormInitialize implements FormDataProviderInterface
         $flashMessageQueue = GeneralUtility::makeInstance(FlashMessageService::class)->getMessageQueueByIdentifier(
             'core.template.flashMessages'
         );
+
         $flashMessageQueue->enqueue($flashMessage);
     }
 }

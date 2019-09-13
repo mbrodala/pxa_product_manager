@@ -69,40 +69,6 @@ class ProductUtility
      */
     const ORDER_STATE_COOKIE_NAME = 'pxa_pm_order_state';
 
-    /**
-     * Get array of uids of categories for product
-     *
-     * @param $product
-     * @return array
-     */
-    public static function getProductCategoriesUids(int $product): array
-    {
-        $result = [];
-
-        if ($product) {
-            $configuration =
-                $GLOBALS['TCA']['tx_pxaproductmanager_domain_model_product']['columns']['categories']['config'];
-
-            /** @var RelationHandler $relationHandler */
-            $relationHandler = GeneralUtility::makeInstance(RelationHandler::class);
-            $relationHandler->start(
-                '',
-                'sys_category',
-                'sys_category_record_mm',
-                $product,
-                'tx_pxaproductmanager_domain_model_product',
-                $configuration
-            );
-
-            foreach ($relationHandler->itemArray as $item) {
-                if ($item['id'] > 0) {
-                    $result[] = $item['id'];
-                }
-            }
-        }
-
-        return $result;
-    }
 
     /**
      * Get tree of parent categories of product, include product categories as top level

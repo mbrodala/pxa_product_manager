@@ -1,5 +1,5 @@
 <?php
-
+declare(strict_types=1);
 namespace Pixelant\PxaProductManager\Domain\Repository;
 
 /***************************************************************
@@ -156,22 +156,34 @@ class CategoryRepository extends \TYPO3\CMS\Extbase\Domain\Repository\CategoryRe
      * @param array $productsUids
      * @return array
      */
-    public function getProductsCategoriesUids(array $productsUids): array
+    public function findUidsByProductsUids(array $productsUids): array
     {
         $categories = [];
 
         /** @var QueryBuilder $queryBuilder */
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(
-            'sys_category_record_mm'
+            'sys_category'
         );
-        $queryBuilder->getRestrictions()->removeAll();
 
         $statement = $queryBuilder
-            ->select('uid_local')
-            ->from('sys_category_record_mm')
+            ->select('uid')
+            ->from('sys_category')
+            ->join(
+                'sys_category',
+                'sys_category_record_mm',
+                'mm',
+                $queryBuilder->expr()->eq(
+                    'sys_category.uid', $queryBuilder->quoteIdentifier('mm.uid_local')
+                )
+            )
+            ->join(
+                'tx_pxaproductmanager_domain_model_product',
+                'mm',
+                'sys'
+            )
             ->where(
                 $queryBuilder->expr()->eq(
-                    'tablenames',
+                    'mm.tablenames',
                     $queryBuilder->createNamedParameter(
                         'tx_pxaproductmanager_domain_model_product',
                         Connection::PARAM_STR

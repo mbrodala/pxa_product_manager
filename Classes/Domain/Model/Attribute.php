@@ -37,16 +37,6 @@ class Attribute extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
 {
 
     /**
-     * Prefix for TCA fields
-     */
-    const TCA_ATTRIBUTE_PREFIX = 'tx_pxaproductmanager_attribute_';
-
-    /**
-     * Additional prefix for files and images
-     */
-    const TCA_ATTRIBUTE_FILE_PREFIX = 'attribute_file_';
-
-    /**
      * Attributes types
      */
     const ATTRIBUTE_TYPE_INPUT = 1;

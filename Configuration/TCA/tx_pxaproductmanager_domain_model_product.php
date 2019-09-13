@@ -324,11 +324,11 @@ return (function () {
                     $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext']
                 ),
             ],
-            \Pixelant\PxaProductManager\Utility\TCAUtility::ATTRIBUTE_FAL_FIELD_NAME => [
+            \Pixelant\PxaProductManager\Utility\TCAUtility::ATTRIBUTE_FAL_DB_FIELD_NAME => [
                 'exclude' => 0,
                 'label' => '',
                 'config' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::getFileFieldTCAConfig(
-                    \Pixelant\PxaProductManager\Utility\TCAUtility::ATTRIBUTE_FAL_FIELD_NAME,
+                    \Pixelant\PxaProductManager\Utility\TCAUtility::ATTRIBUTE_FAL_DB_FIELD_NAME,
                     [
                         'appearance' => [
                             'createNewRelationLinkTitle' =>
@@ -339,7 +339,7 @@ return (function () {
                             'showSynchronizationLink' => false
                         ],
                         'foreign_match_fields' => [
-                            'fieldname' => \Pixelant\PxaProductManager\Utility\TCAUtility::ATTRIBUTE_FAL_FIELD_NAME,
+                            'fieldname' => \Pixelant\PxaProductManager\Utility\TCAUtility::ATTRIBUTE_FAL_DB_FIELD_NAME,
                             'tablenames' => 'tx_pxaproductmanager_domain_model_product',
                             'table_local' => 'sys_file',
                         ],

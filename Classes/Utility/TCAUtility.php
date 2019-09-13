@@ -40,10 +40,26 @@ use TYPO3\CMS\Core\Utility\StringUtility;
 class TCAUtility
 {
     /**
-     * Field name of sys_file_reference and products TCA where
-     * attribute files are saved
+     * Database field name of attribute files.
+     * This field name is also used in sys_file_reference
+     * where relation to products is kept
      */
-    const ATTRIBUTE_FAL_FIELD_NAME = 'attribute_files';
+    const ATTRIBUTE_FAL_DB_FIELD_NAME = 'attribute_files';
+
+    /**
+     * Database field name of attribute values on JSON format
+     */
+    const ATTRIBUTES_VALUES_DB_FIELD_NAME = 'attribute_values';
+
+    /**
+     * Prefix for TCA fields
+     */
+    const TCA_ATTRIBUTE_PREFIX = 'tx_pxaproductmanager_attribute_';
+
+    /**
+     * Prefix for files and images
+     */
+    const TCA_ATTRIBUTE_FILE_PREFIX = 'tx_pxaproductmanager_file_attribute_';
 
     /**
      * Return TCA configuration of different types of attributes
@@ -181,7 +197,7 @@ class TCAUtility
                         'collapseAll' => true
                     ],
                     'foreign_match_fields' => [
-                        'fieldname' => self::ATTRIBUTE_FAL_FIELD_NAME,
+                        'fieldname' => self::ATTRIBUTE_FAL_DB_FIELD_NAME,
                         'tablenames' => 'tx_pxaproductmanager_domain_model_product',
                         'table_local' => 'sys_file',
                         'pxa_attribute' => $uid
@@ -304,15 +320,13 @@ class TCAUtility
      */
     public static function getAttributeTCAFieldName(int $attributeUid, int $attributeType = null): string
     {
-        $fieldName = Attribute::TCA_ATTRIBUTE_PREFIX . $attributeUid;
-
-        if ($attributeType !== null
-            && ($attributeType === Attribute::ATTRIBUTE_TYPE_IMAGE || $attributeType === Attribute::ATTRIBUTE_TYPE_FILE)
-        ) {
-            $fieldName = Attribute::TCA_ATTRIBUTE_FILE_PREFIX . $fieldName;
+        if ($attributeType === Attribute::ATTRIBUTE_TYPE_IMAGE || $attributeType === Attribute::ATTRIBUTE_TYPE_FILE) {
+            // Append with special file prefix
+            return self::TCA_ATTRIBUTE_FILE_PREFIX . $attributeUid;
         }
 
-        return $fieldName;
+        // Append with attribute prefix
+        return self::TCA_ATTRIBUTE_PREFIX . $attributeUid;
     }
 
     /**
@@ -321,9 +335,9 @@ class TCAUtility
      * @param string $fieldName
      * @return bool
      */
-    public static function isAttributeField(string $fieldName): bool
+    public static function isAttributeTCAField(string $fieldName): bool
     {
-        return StringUtility::beginsWith($fieldName, ATTRIBUTE::TCA_ATTRIBUTE_PREFIX);
+        return StringUtility::beginsWith($fieldName, self::TCA_ATTRIBUTE_PREFIX);
     }
 
     /**
@@ -332,9 +346,9 @@ class TCAUtility
      * @param string $fieldName
      * @return int
      */
-    public static function determinateAttributeUidFromFieldName(string $fieldName): int
+    public static function getAttributeUidFromTCAFieldName(string $fieldName): int
     {
-        return (int)str_replace(ATTRIBUTE::TCA_ATTRIBUTE_PREFIX, '', $fieldName);
+        return (int)str_replace(self::TCA_ATTRIBUTE_PREFIX, '', $fieldName);
     }
 
     /**
@@ -343,9 +357,9 @@ class TCAUtility
      * @param string $fieldName
      * @return bool
      */
-    public static function isFalAttributeField(string $fieldName): bool
+    public static function isFalAttributeTCAField(string $fieldName): bool
     {
-        return StringUtility::beginsWith($fieldName, ATTRIBUTE::TCA_ATTRIBUTE_FILE_PREFIX);
+        return StringUtility::beginsWith($fieldName, self::TCA_ATTRIBUTE_FILE_PREFIX);
     }
 
     /**
@@ -354,9 +368,9 @@ class TCAUtility
      * @param string $fieldName
      * @return int
      */
-    public static function determinateFalAttributeUidFromFieldName(string $fieldName): int
+    public static function getFalAttributeUidFromTCAFieldName(string $fieldName): int
     {
-        return (int)str_replace(Attribute::TCA_ATTRIBUTE_FILE_PREFIX . ATTRIBUTE::TCA_ATTRIBUTE_PREFIX, '', $fieldName);
+        return (int)str_replace(self::TCA_ATTRIBUTE_FILE_PREFIX, '', $fieldName);
     }
 
     /**
