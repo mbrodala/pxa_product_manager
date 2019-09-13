@@ -10,28 +10,32 @@ CREATE TABLE tx_pxaproductmanager_domain_model_product (
   sku varchar(255) DEFAULT '' NOT NULL,
   price double(11,2) DEFAULT '0.00' NOT NULL,
   tax_rate decimal(5,2) DEFAULT '0.00' NOT NULL,
+  teaser text,
   description text,
   disable_single_view tinyint(1) unsigned DEFAULT '0' NOT NULL,
-  attribute_values  varchar(255) DEFAULT '' NOT NULL,
+  attribute_values  json DEFAULT NULL,
+  attribute_files int(11) unsigned DEFAULT '0',
   related_products int(11) unsigned DEFAULT '0' NOT NULL,
   images int(11) unsigned DEFAULT '0',
-  attribute_files int(11) unsigned DEFAULT '0',
   links int(11) unsigned DEFAULT '0' NOT NULL,
   sub_products int(11) unsigned DEFAULT '0' NOT NULL,
-  path_segment tinytext,
-  alternative_title tinytext,
+  alternative_title varchar(255) DEFAULT '' NOT NULL,
   keywords text,
   meta_description text,
   fal_links int(11) unsigned DEFAULT '0',
-  serialized_attributes_values blob,
+# Consider removing
   attributes_description text,
   assets int(11) unsigned DEFAULT '0' NOT NULL,
   accessories int(11) unsigned DEFAULT '0' NOT NULL,
+# Consider removing
   additional_information text,
-  teaser text,
+# Consider removing
   launched int(11) unsigned DEFAULT '0' NOT NULL,
+# Consider removing
   discontinued int(11) unsigned DEFAULT '0' NOT NULL,
+# Consider removing
   usp text,
+# Consider removing
   custom_sorting int(11) DEFAULT '0' NOT NULL,
   slug varchar(2048),
 

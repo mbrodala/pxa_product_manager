@@ -10,7 +10,7 @@
  * "version" and "dependencies" must not be touched!
  ***************************************************************/
 
-$EM_CONF[$_EXTKEY] = [
+$EM_CONF['pxa_product_manager'] = [
     'title' => 'Product Manager',
     'description' => 'Create and list products on a site.',
     'category' => 'plugin',
@@ -20,10 +20,10 @@ $EM_CONF[$_EXTKEY] = [
     'state' => 'stable',
     'createDirs' => '',
     'clearCacheOnLoad' => true,
-    'version' => '9.9.0',
+    'version' => '10.0.0-dev',
     'constraints' => [
         'depends' => [
-            'typo3' => '9.5.0-9.5.99'
+            'typo3' => '10.0.0-10.0.99'
         ],
         'conflicts' => [],
         'suggests' => []
