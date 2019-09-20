@@ -62,100 +62,106 @@ class TCAUtility
     const TCA_ATTRIBUTE_FILE_PREFIX = 'tx_pxaproductmanager_file_attribute_';
 
     /**
+     * @var array
+     */
+    protected static $attributesTCAConfiguration = [
+        Attribute::ATTRIBUTE_TYPE_INPUT => [
+            'exclude' => 0,
+            'label' => '',
+            'config' => [
+                'type' => 'input',
+                'size' => 30,
+                'eval' => 'trim',
+            ]
+        ],
+
+        Attribute::ATTRIBUTE_TYPE_TEXT => [
+            'exclude' => 0,
+            'label' => '',
+            'config' => [
+                'type' => 'text',
+                'cols' => '48',
+                'rows' => '8',
+                'eval' => 'trim'
+            ]
+        ],
+
+        Attribute::ATTRIBUTE_TYPE_CHECKBOX => [
+            'exclude' => 0,
+            'label' => '',
+            'config' => [
+                'type' => 'check',
+                'items' => []
+            ]
+        ],
+
+        Attribute::ATTRIBUTE_TYPE_DROPDOWN => [
+            'exclude' => 0,
+            'label' => '',
+            'config' => [
+                'type' => 'select',
+                'renderType' => 'selectSingle',
+                'items' => [],
+                'size' => 1,
+                'maxitems' => 1
+            ]
+        ],
+
+        Attribute::ATTRIBUTE_TYPE_MULTISELECT => [
+            'exclude' => 0,
+            'label' => '',
+            'config' => [
+                'type' => 'select',
+                'renderType' => 'selectMultipleSideBySide',
+                'items' => [],
+                'size' => 10,
+                'maxitems' => 99,
+                'multiple' => 0,
+            ]
+        ],
+
+        Attribute::ATTRIBUTE_TYPE_DATETIME => [
+            'exclude' => 0,
+            'label' => '',
+            'config' => [
+                'type' => 'input',
+                'renderType' => 'inputDateTime',
+                'eval' => 'datetime'
+            ]
+        ],
+
+        Attribute::ATTRIBUTE_TYPE_LINK => [
+            'exclude' => 0,
+            'config' => [
+                'type' => 'input',
+                'size' => '30',
+                'max' => '256',
+                'eval' => 'trim',
+                'renderType' => 'inputLink',
+                'softref' => 'typolink'
+            ],
+        ],
+
+        Attribute::ATTRIBUTE_TYPE_LABEL => [
+            'exclude' => 0,
+            'label' => '',
+            'config' => [
+                'type' => 'input',
+                'size' => 30,
+                'eval' => 'trim',
+            ]
+        ]
+    ];
+
+    /**
      * Return TCA configuration of different types of attributes
      *
+     * @param int $type
      * @return array
      */
-    public static function getDefaultAttributesTCAConfiguration(): array
+    public static function getAttributeTCAConfiguration(int $type): array
     {
-        return [
-            Attribute::ATTRIBUTE_TYPE_INPUT => [
-                'exclude' => 0,
-                'label' => '',
-                'config' => [
-                    'type' => 'input',
-                    'size' => 30,
-                    'eval' => 'trim',
-                ]
-            ],
-
-            Attribute::ATTRIBUTE_TYPE_TEXT => [
-                'exclude' => 0,
-                'label' => '',
-                'config' => [
-                    'type' => 'text',
-                    'cols' => '48',
-                    'rows' => '8',
-                    'eval' => 'trim'
-                ]
-            ],
-
-            Attribute::ATTRIBUTE_TYPE_CHECKBOX => [
-                'exclude' => 0,
-                'label' => '',
-                'config' => [
-                    'type' => 'check',
-                    'items' => []
-                ]
-            ],
-
-            Attribute::ATTRIBUTE_TYPE_DROPDOWN => [
-                'exclude' => 0,
-                'label' => '',
-                'config' => [
-                    'type' => 'select',
-                    'renderType' => 'selectSingle',
-                    'items' => [],
-                    'size' => 1,
-                    'maxitems' => 1
-                ]
-            ],
-
-            Attribute::ATTRIBUTE_TYPE_MULTISELECT => [
-                'exclude' => 0,
-                'label' => '',
-                'config' => [
-                    'type' => 'select',
-                    'renderType' => 'selectMultipleSideBySide',
-                    'items' => [],
-                    'size' => 10,
-                    'maxitems' => 99,
-                    'multiple' => 0,
-                ]
-            ],
-
-            Attribute::ATTRIBUTE_TYPE_DATETIME => [
-                'exclude' => 0,
-                'label' => '',
-                'config' => [
-                    'type' => 'input',
-                    'renderType' => 'inputDateTime',
-                    'eval' => 'datetime'
-                ]
-            ],
-
-            Attribute::ATTRIBUTE_TYPE_LINK => [
-                'exclude' => 0,
-                'config' => [
-                    'type' => 'input',
-                    'size' => '30',
-                    'max' => '256',
-                    'eval' => 'trim',
-                    'renderType' => 'inputLink',
-                    'softref' => 'typolink'
-                ],
-            ],
-
-            Attribute::ATTRIBUTE_TYPE_LABEL => [
-                'exclude' => 0,
-                'label' => '',
-                'config' => [
-                    'type' => 'input',
-                    'size' => 30,
-                    'eval' => 'trim',
-                ]
-            ]
-        ];
+        return static::$attributesTCAConfiguration[$type];
     }
 
     /**

@@ -34,7 +34,9 @@ use TYPO3\CMS\Core\Charset\CharsetConverter;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
+use TYPO3\CMS\Extbase\DomainObject\AbstractEntity;
 use TYPO3\CMS\Extbase\Object\ObjectManager;
+use TYPO3\CMS\Extbase\Persistence\Generic\Mapper\DataMapper;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
@@ -60,6 +62,22 @@ class MainUtility
         'ú' => 'u', 'û' => 'u', 'ü' => 'u', 'ý' => 'y', 'ý' => 'y', 'þ' => 'b', 'ÿ' => 'y', 'ƒ' => 'f',
         'ă' => 'a', 'î' => 'i', 'â' => 'a', 'ș' => 's', 'ț' => 't', 'Ă' => 'A', 'Î' => 'I', 'Â' => 'A', 'Ș' => 'S', 'Ț' => 'T',
     ];// @codingStandardsIgnoreEnd
+
+    /**
+     * Data map single row
+     *
+     * @param string $model
+     * @param array $row
+     * @return AbstractEntity
+     */
+    public static function singleRowToExtbaseObject(string $model, array $row): AbstractEntity
+    {
+        /** @var DataMapper $dataMapper */
+        $dataMapper = GeneralUtility::makeInstance(ObjectManager::class)->get(DataMapper::class);
+        $mappingResult = $dataMapper->map($model, [$row]);
+
+        return $mappingResult[0];
+    }
 
     /**
      * Check if prices enabled

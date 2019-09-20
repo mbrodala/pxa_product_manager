@@ -40,7 +40,7 @@
                 <source>Links</source>
             </trans-unit>
             <trans-unit id="tx_pxaproductmanager_domain_model_product.fal_links">
-                <source>Files</source>
+                <source>File</source>
             </trans-unit>
             <trans-unit id="tx_pxaproductmanager_domain_model_product.fal_links.add_button">
                 <source>Add file</source>
@@ -175,7 +175,7 @@
                 <source>Multiselect</source>
             </trans-unit>
             <trans-unit id="tx_pxaproductmanager_domain_model_attribute.type_10">
-                <source>Files</source>
+                <source>File</source>
             </trans-unit>
             <trans-unit id="tx_pxaproductmanager_domain_model_attribute.icon">
                 <source>Icon</source>

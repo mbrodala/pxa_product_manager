@@ -346,10 +346,6 @@ return (function () {
             $llType . \Pixelant\PxaProductManager\Domain\Model\Attribute::ATTRIBUTE_TYPE_FILE,
             \Pixelant\PxaProductManager\Domain\Model\Attribute::ATTRIBUTE_TYPE_FILE
         ],
-        [
-            $llType . \Pixelant\PxaProductManager\Domain\Model\Attribute::ATTRIBUTE_TYPE_LABEL,
-            \Pixelant\PxaProductManager\Domain\Model\Attribute::ATTRIBUTE_TYPE_LABEL
-        ],
     ];
 
     return $tx_pxaproductmanager_domain_model_attribute;

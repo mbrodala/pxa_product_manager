@@ -24,6 +24,9 @@ namespace Pixelant\PxaProductManager\Domain\Model;
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+
+use TYPO3\CMS\Extbase\Domain\Model\FileReference;
+use TYPO3\CMS\Extbase\Persistence\Generic\LazyLoadingProxy;
 use TYPO3\CMS\Extbase\Persistence\ObjectStorage;
 
 /**
@@ -46,7 +49,6 @@ class Attribute extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     const ATTRIBUTE_TYPE_CHECKBOX = 5;
     const ATTRIBUTE_TYPE_LINK = 6;
     const ATTRIBUTE_TYPE_IMAGE = 7;
-    const ATTRIBUTE_TYPE_LABEL = 8;
     const ATTRIBUTE_TYPE_MULTISELECT = 9;
     const ATTRIBUTE_TYPE_FILE = 10;
 
@@ -182,10 +184,10 @@ class Attribute extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     /**
      * Sets the name
      *
-     * @param \string $name
+     * @param string $name
      * @return void
      */
-    public function setName(string $name)
+    public function setName(string $name): void
     {
         $this->name = $name;
     }
@@ -193,7 +195,7 @@ class Attribute extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     /**
      * Returns the type
      *
-     * @return \integer $type
+     * @return integer $type
      */
     public function getType(): int
     {
@@ -206,19 +208,9 @@ class Attribute extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * @param \integer $type
      * @return void
      */
-    public function setType(int $type)
+    public function setType(int $type): void
     {
         $this->type = $type;
-    }
-
-    /**
-     * Returns the required
-     *
-     * @return boolean $required
-     */
-    public function getRequired(): bool
-    {
-        return $this->required;
     }
 
     /**
@@ -239,7 +231,7 @@ class Attribute extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      */
     public function isRequired(): bool
     {
-        return $this->getRequired();
+        return $this->required;
     }
 
     /**
@@ -276,8 +268,7 @@ class Attribute extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     /**
      * Returns the identifier
      *
-     * @param bool $strict
-     * @return \string $identifier
+     * @return string $identifier
      */
     public function getIdentifier(): string
     {
@@ -287,34 +278,12 @@ class Attribute extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     /**
      * Sets the identifier
      *
-     * @param \string $identifier
+     * @param string $identifier
      * @return void
      */
-    public function setIdentifier(string $identifier)
+    public function setIdentifier(string $identifier): void
     {
         $this->identifier = $identifier;
-    }
-
-    /**
-     * Adds a Option
-     *
-     * @param Option $option
-     * @return void
-     */
-    public function addOption(Option $option)
-    {
-        $this->options->attach($option);
-    }
-
-    /**
-     * Removes a Option
-     *
-     * @param Option $optionToRemove The Option to be removed
-     * @return void
-     */
-    public function removeOption(Option $optionToRemove)
-    {
-        $this->options->detach($optionToRemove);
     }
 
     /**
@@ -333,7 +302,7 @@ class Attribute extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * @param \TYPO3\CMS\Extbase\Persistence\ObjectStorage<\Pixelant\PxaProductManager\Domain\Model\Option> $options
      * @return void
      */
-    public function setOptions(ObjectStorage $options)
+    public function setOptions(ObjectStorage $options): void
     {
         $this->options = $options;
     }
@@ -343,7 +312,7 @@ class Attribute extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      *
      * @return boolean $showInCompare
      */
-    public function getShowInCompare(): bool
+    public function isShowInCompare(): bool
     {
         return $this->showInCompare;
     }
@@ -354,19 +323,9 @@ class Attribute extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * @param boolean $showInCompare
      * @return void
      */
-    public function setShowInCompare(bool $showInCompare)
+    public function setShowInCompare(bool $showInCompare): bool
     {
         $this->showInCompare = $showInCompare;
-    }
-
-    /**
-     * Returns the boolean state of showInCompare
-     *
-     * @return boolean
-     */
-    public function isShowInCompare(): bool
-    {
-        return $this->getShowInCompare();
     }
 
 
@@ -386,7 +345,7 @@ class Attribute extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * @param \string $defaultValue
      * @return void
      */
-    public function setDefaultValue(string $defaultValue)
+    public function setDefaultValue(string $defaultValue): void
     {
         $this->defaultValue = $defaultValue;
     }
@@ -402,7 +361,7 @@ class Attribute extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     /**
      * @param string $labelChecked
      */
-    public function setLabelChecked(string $labelChecked)
+    public function setLabelChecked(string $labelChecked): void
     {
         $this->labelChecked = $labelChecked;
     }
@@ -418,7 +377,7 @@ class Attribute extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     /**
      * @param string $labelUnchecked
      */
-    public function setLabelUnchecked(string $labelUnchecked)
+    public function setLabelUnchecked(string $labelUnchecked): void
     {
         $this->labelUnchecked = $labelUnchecked;
     }
@@ -442,7 +401,7 @@ class Attribute extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     /**
      * Returns the label
      *
-     * @return \string $label
+     * @return string $label
      */
     public function getLabel(): string
     {
@@ -452,10 +411,10 @@ class Attribute extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     /**
      * Sets the label
      *
-     * @param \string $label
+     * @param string $label
      * @return void
      */
-    public function setLabel(string $label)
+    public function setLabel(string $label): bool
     {
         $this->label = $label;
     }
@@ -463,10 +422,10 @@ class Attribute extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     /**
      * Sets the icon value
      *
+     * @param FileReference $icon
      * @api
-     * @param \TYPO3\CMS\Extbase\Domain\Model\FileReference $icon
      */
-    public function setIcon(\TYPO3\CMS\Extbase\Domain\Model\FileReference $icon)
+    public function setIcon(FileReference $icon): void
     {
         $this->icon = $icon;
     }
@@ -474,20 +433,85 @@ class Attribute extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     /**
      * Gets the icon value
      *
+     * @return FileReference
      * @api
-     * @return \TYPO3\CMS\Extbase\Domain\Model\FileReference
      */
-    public function getIcon()
+    public function getIcon(): FileReference
     {
+        if ($this->icon instanceof LazyLoadingProxy) {
+            $this->icon = $this->icon->_loadRealInstance();
+        }
+
         return $this->icon;
     }
 
     /**
      * Check if attribute type is FAL file
+     *
      * @return bool
      */
     public function isFalType(): bool
     {
         return $this->type === self::ATTRIBUTE_TYPE_IMAGE || $this->type === self::ATTRIBUTE_TYPE_FILE;
+    }
+
+    /**
+     * Text or text area
+     * @return bool
+     */
+    public function isInputType(): bool
+    {
+        return in_array(
+            $this->type,
+            [
+                self::ATTRIBUTE_TYPE_INPUT,
+                self::ATTRIBUTE_TYPE_TEXT,
+            ]
+        );
+    }
+
+    /**
+     * Date type check
+     *
+     * @return bool
+     */
+    public function isDateType(): bool
+    {
+        return $this->type === self::ATTRIBUTE_TYPE_DATETIME;
+    }
+
+    /**
+     * Select box type
+     * @return bool
+     */
+    public function isSelectBoxType(): bool
+    {
+        return in_array(
+            $this->type,
+            [
+                self::ATTRIBUTE_TYPE_MULTISELECT,
+                self::ATTRIBUTE_TYPE_DROPDOWN,
+            ]
+        );
+    }
+
+    /**
+     * Checkbox type
+     *
+     * @return bool
+     */
+    public function isCheckboxType(): bool
+    {
+        return $this->type === self::ATTRIBUTE_TYPE_CHECKBOX;
+    }
+
+    /**
+     * Link type
+     *
+     * @return bool
+     */
+    public function isLinkType(): bool
+    {
+        return $this->type === self::ATTRIBUTE_TYPE_LINK;
     }
 }

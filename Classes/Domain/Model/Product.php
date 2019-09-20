@@ -49,6 +49,7 @@ class Product extends AbstractEntity
      * Categories
      *
      * @var \TYPO3\CMS\Extbase\Persistence\ObjectStorage<\Pixelant\PxaProductManager\Domain\Model\Category>
+     * @TYPO3\CMS\Extbase\Annotation\ORM\Lazy
      */
     protected $categories;
 
@@ -67,7 +68,7 @@ class Product extends AbstractEntity
     /**
      * sku
      *
-     * @var \string
+     * @var string
      */
     protected $sku;
 
@@ -103,11 +104,6 @@ class Product extends AbstractEntity
      * @var \string
      */
     protected $alternativeTitle = '';
-
-    /**
-     * @var \string
-     */
-    protected $pathSegment = '';
 
     /**
      * @var \string
@@ -1046,6 +1042,10 @@ class Product extends AbstractEntity
         $this->serializedAttributesValues = $serializedAttributesValues;
     }
 
+    public function getAttributeValuesRaw(): array
+    {
+        return [];
+    }
 
     /**
      * Get creation date

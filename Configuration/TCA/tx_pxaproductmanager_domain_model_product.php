@@ -37,8 +37,7 @@ return (function () {
         'types' => [
             '1' => [
                 'showitem' => 'sys_language_uid,l10n_parent,l10n_diffsource,hidden,--palette--;;1,name, slug, sku, price, tax_rate, teaser, description, usp, additional_information, attributes_description, launched, discontinued, custom_sorting,
---div--;' . $llCore . 'locallang_tca.xlf:sys_category.tabs.category, categories,
---palette--;;paletteAttributes,
+--div--;' . $llCore . 'locallang_tca.xlf:sys_category.tabs.category, categories,--palette--;;paletteAttributes,
 --div--;' . $ll . 'tx_pxaproductmanager_domain_model_product.tab.images, images,
 --div--;' . $ll . 'tx_pxaproductmanager_domain_model_product.tab.assets, assets,
 --div--;' . $ll . 'tx_pxaproductmanager_domain_model_product.tab.relations, related_products, sub_products, accessories, fal_links, links,
@@ -211,23 +210,6 @@ return (function () {
                     'type' => 'check',
                     'default' => 0
                 ],
-            ],
-            'attribute_values' => [
-                'exclude' => 0,
-                'label' => $ll . 'tx_pxaproductmanager_domain_model_product.attribute_values',
-                'config' => [
-                    'type' => 'inline',
-                    'foreign_table' => 'tx_pxaproductmanager_domain_model_attributevalue',
-                    'foreign_field' => 'product',
-                    'maxitems' => 9999,
-                    'appearance' => [
-                        'collapseAll' => 0,
-                        'levelLinksPosition' => 'top',
-                        'showSynchronizationLink' => 1,
-                        'showPossibleLocalizationRecords' => 1,
-                        'showAllLocalizationLink' => 1
-                    ]
-                ]
             ],
             'related_products' => [
                 'exclude' => 0,
@@ -526,18 +508,9 @@ return (function () {
                     'size' => 30
                 ]
             ],
-            'path_segment' => [
-                'exclude' => 0,
-                'label' => $ll . 'tx_pxaproductmanager_domain_model_product.path_segment',
-                'config' => [
-                    'type' => 'input',
-                    'size' => 30,
-                    'eval' => 'nospace,alphanum_x,lower',
-                ]
-            ],
-            'serialized_attributes_values' => [
+            'attributes_values' => [
                 'exclude' => 1,
-                'label' => 'serialized_attributes_values',
+                'label' => 'attributes_values',
                 'config' => [
                     'type' => 'text'
                 ]
@@ -558,17 +531,6 @@ return (function () {
                 'label' => 'deleted',
                 'config' => [
                     'type' => 'passthrough'
-                ]
-            ],
-            'attributes_description' => [
-                'exclude' => 0,
-                'label' => $ll . 'tx_pxaproductmanager_domain_model_product.attributes_description',
-                'config' => [
-                    'type' => 'text',
-                    'cols' => 40,
-                    'rows' => 15,
-                    'eval' => 'trim',
-                    'enableRichtext' => true
                 ]
             ],
             'assets' => [
@@ -620,17 +582,6 @@ return (function () {
                     ],
                 ], $GLOBALS['TYPO3_CONF_VARS']['SYS']['mediafile_ext'])
             ],
-            'additional_information' => [
-                'exclude' => 0,
-                'label' => $ll . 'tx_pxaproductmanager_domain_model_product.additional_information',
-                'config' => [
-                    'type' => 'text',
-                    'cols' => 40,
-                    'rows' => 15,
-                    'eval' => 'trim',
-                    'enableRichtext' => true
-                ]
-            ],
             'teaser' => [
                 'exclude' => 0,
                 'label' => $ll . 'tx_pxaproductmanager_domain_model_product.teaser',
@@ -641,41 +592,6 @@ return (function () {
                     'eval' => 'trim',
                     'enableRichtext' => false
                 ]
-            ],
-            'usp' => [
-                'exclude' => 0,
-                'label' => $ll . 'tx_pxaproductmanager_domain_model_product.usp',
-                'config' => [
-                    'type' => 'text',
-                    'cols' => 40,
-                    'rows' => 10,
-                    'eval' => 'trim',
-                    'enableRichtext' => false
-                ]
-            ],
-            'launched' => [
-                'exclude' => 0,
-                'l10n_mode' => 'exclude',
-                'label' => $ll . 'tx_pxaproductmanager_domain_model_product.launched',
-                'config' => [
-                    'type' => 'input',
-                    'renderType' => 'inputDateTime',
-                    'eval' => 'date,int',
-                    'size' => 13,
-                    'default' => 0,
-                ],
-            ],
-            'discontinued' => [
-                'exclude' => 0,
-                'l10n_mode' => 'exclude',
-                'label' => $ll . 'tx_pxaproductmanager_domain_model_product.discontinued',
-                'config' => [
-                    'type' => 'input',
-                    'renderType' => 'inputDateTime',
-                    'eval' => 'date,int',
-                    'size' => 13,
-                    'default' => 0,
-                ],
             ],
             'accessories' => [
                 'exclude' => 0,
@@ -704,17 +620,6 @@ return (function () {
                     ]
                 ]
             ],
-            'custom_sorting' => [
-                'exclude' => 0,
-                'label' => $ll . 'tx_pxaproductmanager_domain_model_product.custom_sorting',
-                'config' => [
-                    'type' => 'input',
-                    'readOnly' => '1',
-                    'eval' => 'int',
-                    'size' => 13,
-                    'default' => 0,
-                ],
-            ]
         ]
     ];
 })();

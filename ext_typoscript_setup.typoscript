@@ -2,44 +2,6 @@
 config.tx_extbase {
     persistence {
         classes {
-            Pixelant\PxaProductManager\Domain\Model\Image {
-                mapping {
-                    tableName = sys_file_reference
-
-                    columns {
-                        pxapm_use_in_listing.mapOnProperty = useInListing
-                        pxapm_main_image.mapOnProperty = mainImage
-                    }
-                }
-            }
-
-            Pixelant\PxaProductManager\Domain\Model\AttributeFalFile {
-                mapping {
-                    tableName = sys_file_reference
-
-                    columns {
-                        pxa_attribute.mapOnProperty = attribute
-                    }
-                }
-            }
-
-            Pixelant\PxaProductManager\Domain\Model\Category {
-                mapping {
-                    tableName = sys_category
-
-                    columns {
-                        pxapm_attributes_sets.mapOnProperty = attributeSets
-                        pxapm_description.mapOnProperty = description
-                        pxapm_image.mapOnProperty = image
-                        pxapm_banner_image.mapOnProperty = bannerImage
-                        pxapm_card_view_template.mapOnProperty = cardViewTemplate
-                        pxapm_single_view_template.mapOnProperty = singleViewTemplate
-                        pxapm_subcategories.mapOnProperty = subCategories
-                        pxapm_tax_rate.mapOnProperty = taxRate
-                        pxapm_slug.mapOnProperty = slug
-                    }
-                }
-            }
 
             Pixelant\PxaProductManager\Domain\Model\OrderFormField {
                 subclasses {
