@@ -49,11 +49,6 @@ class ProductAttributesCollector
     public function __construct(Product $product)
     {
         $this->product = $product;
-        $this->attributes = new ObjectStorage();
-        $this->attributesSets = new ObjectStorage();
-
-        // Init
-        $this->init();
     }
 
     /**
@@ -61,6 +56,19 @@ class ProductAttributesCollector
      */
     public function getAttributes(): ObjectStorage
     {
+        if ($this->attributes === null) {
+            $attributeSets = $this->getAttributesSets();
+            $attributes = [];
+
+            /** @var AttributeSet $attributeSet */
+            foreach ($attributeSets as $attributeSet) {
+                $attributes = array_merge($attributes, $attributeSet->getAttributes()->toArray());
+            }
+
+            $this->attributes = new ObjectStorage();
+            $this->attachToStorage(array_unique($attributes), $this->attributes);
+        }
+
         return $this->attributes;
     }
 
@@ -69,39 +77,37 @@ class ProductAttributesCollector
      */
     public function getAttributesSets(): ObjectStorage
     {
+        if ($this->attributesSets === null) {
+            $attributesSets = $this->collectAttributesSets($this->product->getCategories());
+
+            $this->attributesSets = new ObjectStorage();
+            $this->attachToStorage($attributesSets, $this->attributesSets);
+        }
+
         return $this->attributesSets;
     }
 
     /**
-     * Collect all attributes for given product
+     * Attach to object storage
      */
-    protected function init(): void
+    protected function attachToStorage(array $items, ObjectStorage $storage): void
     {
-        $categories = $this->product->getCategories();
-
-        list($attributes, $attributesSets) = $this->collectAttributesAndSets($categories);
-
-        foreach ($attributes as $attribute) {
-            $this->attributes->attach(clone $attribute);
+        foreach ($items as $item) {
+            $storage->attach($item);
         }
-        foreach ($attributesSets as $attributesSet) {
-            $this->attributesSets->attach(clone $attributesSet);
-        }
+        $storage->_memorizeCleanState();
     }
 
     /**
-     * Go through every category and collect it parent, so we can get all attributes
+     * Go through every category and collect it parents, so we can get all attributes
      *
      * @param ObjectStorage $categories
      * @return array
      */
-    protected function collectAttributesAndSets(ObjectStorage $categories): array
+    protected function collectAttributesSets(ObjectStorage $categories): array
     {
         if ($categories->count() === 0) {
-            return [
-                [],
-                []
-            ];
+            return [];
         }
 
         $cacheHash = $this->getCacheHash($categories);
@@ -110,32 +116,21 @@ class ProductAttributesCollector
         }
 
         $attributesSets = [];
-        $attributes = [];
         /** @var Category $category */
         foreach ($categories as $category) {
             $categoriesParentsCollection = $this->getCategoriesCollector()->collectParentsTree($category);
 
             /** @var Category $categoryTreeItem */
             foreach ($categoriesParentsCollection as $categoryTreeItem) {
-                $categoryTreeItemAttributesSets = $categoryTreeItem->getAttributeSets();
+                $categoryAttributesSets = $categoryTreeItem->getAttributeSets();
 
-                $attributesSets = array_merge($attributesSets, $categoryTreeItemAttributesSets->toArray());
-
-                /** @var AttributeSet $categoryTreeItemAttributesSet */
-                foreach ($categoryTreeItemAttributesSets as $categoryTreeItemAttributesSet) {
-                    $attributes = array_merge($attributes, $categoryTreeItemAttributesSet->getAttributes()->toArray());
-                }
+                $attributesSets = array_merge($attributesSets, $categoryAttributesSets->toArray());
             }
         }
 
-        $result = [
-            array_unique($attributes),
-            array_unique($attributesSets)
-        ];
+        static::$cache[$cacheHash] = array_unique($attributesSets);
 
-        static::$cache[$cacheHash] = $result;
-
-        return $result;
+        return static::$cache[$cacheHash];
     }
 
     /**

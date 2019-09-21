@@ -1,20 +1,20 @@
 <?php
 declare(strict_types=1);
 
-namespace Pixelant\PxaProductManager\Configuration\Provider;
+namespace Pixelant\PxaProductManager\Configuration\AttributesTCA\Concrete;
 
 /**
  * Class LinkProvider
- * @package Pixelant\PxaProductManager\Configuration\Provider
+ * @package Pixelant\PxaProductManager\Configuration\AttributesTCA\Concrete
  */
-class LinkProvider extends AbstractProvider
+class LinkProviderConcrete extends ConcreteAbstractProvider
 {
     /**
      * Return TCA configuration
      *
      * @return array
      */
-    public function getFieldConfiguration(): array
+    public function getTCAFieldConfiguration(): array
     {
         $configuration = $this->getInitialConfiguration();
 

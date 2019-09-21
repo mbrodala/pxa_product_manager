@@ -3,17 +3,13 @@ declare(strict_types=1);
 
 namespace Pixelant\PxaProductManager\Hook;
 
+use Pixelant\PxaProductManager\Configuration\AttributesTCA\AttributeConfigurationProviderFactory;
+use Pixelant\PxaProductManager\Configuration\AttributesTCA\DefaultConfigurationProvider as TCAConfiguration;
 use Pixelant\PxaProductManager\Domain\Model\Product;
 use Pixelant\PxaProductManager\Domain\Repository\ProductRepository;
 use Pixelant\PxaProductManager\Utility\MainUtility;
-use Pixelant\PxaProductManager\Utility\TCAUtility;
-use TYPO3\CMS\Backend\Utility\BackendUtility;
-use TYPO3\CMS\Core\Database\Connection;
-use TYPO3\CMS\Core\Database\ConnectionPool;
-use TYPO3\CMS\Core\Database\Query\QueryBuilder;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Utility\MathUtility;
 use Pixelant\PxaProductManager\Utility\ProductUtility;
+use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Extbase\Persistence\Generic\PersistenceManager;
 
 /***************************************************************
@@ -63,29 +59,29 @@ class DataHandlerHook
         ) {
             $attributesData = [];
             $attributesFiles = [];
+            $configurationProvider = AttributeConfigurationProviderFactory::createDefault();
 
             /*
              * Go through all fields and fetch attributes values
              */
             foreach ($fieldsArray as $fieldName => $value) {
-                if (TCAUtility::isAttributeTCAField($fieldName)) {
-                    $attributeId = TCAUtility::getAttributeUidFromTCAFieldName($fieldName);
+                if ($configurationProvider->isFieldAttributeTCAField($fieldName)) {
+                    $attributeId = $configurationProvider->determinateAttributeUid($fieldName);
                     $attributesData[$attributeId] = $value;
 
                     unset($fieldsArray[$fieldName]);
-                } elseif (TCAUtility::isFalAttributeTCAField($fieldName)) {
+                } elseif ($configurationProvider->isFieldFalAttributeTCAField($fieldName) && !empty($value)) {
                     $attributesFiles[] = $value;
-
                     unset($fieldsArray[$fieldName]);
                 }
             }
 
             if (!empty($attributesFiles)) {
-                $fieldsArray[TCAUtility::ATTRIBUTE_FAL_DB_FIELD_NAME] = implode(',', $attributesFiles);
+                $fieldsArray[TCAConfiguration::ATTRIBUTE_FAL_DB_FIELD_NAME] = implode(',', $attributesFiles);
             }
 
             if (!empty($attributesData)) {
-                $fieldsArray[TCAUtility::ATTRIBUTES_VALUES_DB_FIELD_NAME] = json_encode($attributesData);
+                $fieldsArray[TCAConfiguration::ATTRIBUTES_VALUES_DB_FIELD_NAME] = json_encode($attributesData);
             }
         }
     }

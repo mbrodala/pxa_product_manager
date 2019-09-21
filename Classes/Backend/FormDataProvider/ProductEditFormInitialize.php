@@ -4,8 +4,8 @@ declare(strict_types=1);
 namespace Pixelant\PxaProductManager\Backend\FormDataProvider;
 
 use Pixelant\PxaProductManager\Collection\ProductAttributesCollector;
-use Pixelant\PxaProductManager\Configuration\Provider\AttributeConfigurationProviderFactory;
-use Pixelant\PxaProductManager\Configuration\Provider\AttributeTCAConfigurationProvider;
+use Pixelant\PxaProductManager\Configuration\AttributesTCA\AttributeConfigurationProviderFactory;
+use Pixelant\PxaProductManager\Configuration\AttributesTCA\Concrete\ConcreteProviderInterface;
 use Pixelant\PxaProductManager\Domain\Model\Attribute;
 use Pixelant\PxaProductManager\Domain\Model\AttributeSet;
 use Pixelant\PxaProductManager\Domain\Model\Product;
@@ -29,9 +29,20 @@ class ProductEditFormInitialize implements FormDataProviderInterface
     use TranslateBeTrait;
 
     /**
-     * @var AttributeTCAConfigurationProvider[]
+     * @var ConcreteProviderInterface[]
      */
     protected $dataProviders = [];
+
+    /**
+     * @var array
+     */
+    protected $attributeValues = [];
+
+    /**
+     * Product
+     * @var Product
+     */
+    protected $product = null;
 
     /**
      * Create TCA configuration
@@ -48,13 +59,13 @@ class ProductEditFormInitialize implements FormDataProviderInterface
         $isNew = StringUtility::beginsWith($result['databaseRow']['uid'], 'NEW');
 
         if (!$isNew) {
-            /** @var Product $product */
-            $product = MainUtility::singleRowToExtbaseObject(Product::class, $result['databaseRow']);
-            $attributesCollector = $this->getProductAttributesCollector($product);
+            $this->init($result['databaseRow']);
+
+            $attributesCollector = $this->getProductAttributesCollector();
 
             if ($attributesCollector->getAttributes()->count()) {
                 $this->populateTCA($attributesCollector->getAttributesSets(), $result['processedTca']);
-                $this->simulateDataValues($attributesCollector->getAttributes(), $product);
+                $result['databaseRow'] = $this->simulateDataValues($attributesCollector->getAttributes(), $result['databaseRow']);
 
                 if (is_array($result['defaultLanguageDiffRow'])) {
                     $diffKey = sprintf(
@@ -81,6 +92,17 @@ class ProductEditFormInitialize implements FormDataProviderInterface
     }
 
     /**
+     * Init product object
+     * @param array $row
+     * @return Product
+     */
+    protected function init(array $row): void
+    {
+        $this->product = MainUtility::singleRowToExtbaseObject(Product::class, $row);
+        $this->attributeValues = $this->product->getAttributesValuesArray();
+    }
+
+    /**
      * Add attributes configuration to TCA
      *
      * @param ObjectStorage $attributesSets
@@ -97,8 +119,8 @@ class ProductEditFormInitialize implements FormDataProviderInterface
             foreach ($attributesSet->getAttributes() as $attribute) {
                 $tcaConfigurationProvider = $this->getAttributeTCAConfigurationProvider($attribute);
 
-                $fieldName = $tcaConfigurationProvider->getFieldName();
-                $tcaConfiguration = $tcaConfigurationProvider->getFieldConfiguration();
+                $fieldName = $tcaConfigurationProvider->getTCAFieldName();
+                $tcaConfiguration = $tcaConfigurationProvider->getTCAFieldConfiguration();
 
                 $tca['columns'][$fieldName] = $tcaConfiguration;
                 $GLOBALS['TCA']['tx_pxaproductmanager_domain_model_product']['columns'][$fieldName] = $tcaConfiguration;
@@ -149,36 +171,24 @@ class ProductEditFormInitialize implements FormDataProviderInterface
      * Simulate DB data for attributes
      *
      * @param ObjectStorage $attributes
-     * @param Product $product
+     * @param array $dbRow
+     * @return array
      */
-    protected function simulateDataValues(ObjectStorage $attributes, Product $product): void
+    protected function simulateDataValues(ObjectStorage $attributes, array $dbRow): array
     {
-        $attributeUidToValue = $product->getAttributeValuesRaw();
-
         /** @var Attribute $attribute */
         foreach ($attributes as $attribute) {
             $tcaConfigurationProvider = $this->getAttributeTCAConfigurationProvider($attribute);
-            $fieldName = $tcaConfigurationProvider->getFieldName();
 
-            if (array_key_exists($attribute->getUid(), $attributeUidToValue)) {
-                switch ($attribute->getType()) {
-                    case Attribute::ATTRIBUTE_TYPE_DROPDOWN:
-                    case Attribute::ATTRIBUTE_TYPE_MULTISELECT:
-                        $dbRow[$fieldName] = GeneralUtility::trimExplode(
-                            ',',
-                            $attributeUidToValue[$attribute->getUid()],
-                            true
-                        );
-                        break;
-                    default:
-                        $dbRow[$fieldName] = $attributeUidToValue[$attribute->getUid()];
-                }
-            } elseif ($attribute->getDefaultValue()
-                && $attribute->getType() !== Attribute::ATTRIBUTE_TYPE_MULTISELECT
-            ) {
-                $dbRow[$fieldName] = $attribute->getDefaultValue();
+            $fieldName = $tcaConfigurationProvider->getTCAFieldName();
+            $fieldValue = $tcaConfigurationProvider->convertRawValueToTCAValue($this->attributeValues);
+
+            if ($fieldValue !== null) {
+                $dbRow[$fieldName] = $fieldValue;
             }
         }
+
+        return $dbRow;
     }
 
     /**
@@ -226,27 +236,26 @@ class ProductEditFormInitialize implements FormDataProviderInterface
     }
 
     /**
-     * @param Product $product
      * @return ProductAttributesCollector
      */
-    protected function getProductAttributesCollector(Product $product): ProductAttributesCollector
+    protected function getProductAttributesCollector(): ProductAttributesCollector
     {
-        return GeneralUtility::makeInstance(ProductAttributesCollector::class, $product);
+        return GeneralUtility::makeInstance(ProductAttributesCollector::class, $this->product);
     }
 
     /**
      * Get configuration provider for TCA
      *
      * @param Attribute $attribute
-     * @return AttributeTCAConfigurationProvider
+     * @return ConcreteProviderInterface
      */
-    protected function getAttributeTCAConfigurationProvider(Attribute $attribute): AttributeTCAConfigurationProvider
+    protected function getAttributeTCAConfigurationProvider(Attribute $attribute): ConcreteProviderInterface
     {
         if (isset($this->dataProviders[$attribute->getUid()])) {
             return $this->dataProviders[$attribute->getUid()];
         }
 
-        $tcaConfigurationProvider = AttributeConfigurationProviderFactory::create($attribute);
+        $tcaConfigurationProvider = AttributeConfigurationProviderFactory::createConcrete($attribute);
 
         $this->dataProviders[$attribute->getUid()] = $tcaConfigurationProvider;
         return $tcaConfigurationProvider;

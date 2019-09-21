@@ -1,4 +1,7 @@
 <?php
+
+use Pixelant\PxaProductManager\Configuration\AttributesTCA\DefaultConfigurationProvider;
+
 defined('TYPO3_MODE') || die('Access denied.');
 
 return (function () {
@@ -31,7 +34,7 @@ return (function () {
         ],
         // @codingStandardsIgnoreStart
         'interface' => [
-            'showRecordFieldList' => 'sys_language_uid, l10n_parent, l10n_diffsource, hidden, name, slug, sku, price, tax_rate, teaser, description, usp, additional_information, attributes_description, disable_single_view, related_products, images, links, fal_links, sub_products,meta_description, keywords, alternative_title, path_segment, serialized_attributes_values, attribute_values',
+            'showRecordFieldList' => 'sys_language_uid, l10n_parent, l10n_diffsource, hidden, name, slug, sku, price, tax_rate, teaser, description, usp, additional_information, attributes_description, disable_single_view, related_products, images, links, fal_links, sub_products,meta_description, keywords, alternative_title, attributes_values, attributes_files',
         ],
 
         'types' => [
@@ -306,11 +309,11 @@ return (function () {
                     $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext']
                 ),
             ],
-            \Pixelant\PxaProductManager\Utility\TCAUtility::ATTRIBUTE_FAL_DB_FIELD_NAME => [
+            DefaultConfigurationProvider::ATTRIBUTE_FAL_DB_FIELD_NAME => [
                 'exclude' => 0,
-                'label' => '',
+                'label' => DefaultConfigurationProvider::ATTRIBUTE_FAL_DB_FIELD_NAME,
                 'config' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::getFileFieldTCAConfig(
-                    \Pixelant\PxaProductManager\Utility\TCAUtility::ATTRIBUTE_FAL_DB_FIELD_NAME,
+                    DefaultConfigurationProvider::ATTRIBUTE_FAL_DB_FIELD_NAME,
                     [
                         'appearance' => [
                             'createNewRelationLinkTitle' =>
@@ -321,7 +324,7 @@ return (function () {
                             'showSynchronizationLink' => false
                         ],
                         'foreign_match_fields' => [
-                            'fieldname' => \Pixelant\PxaProductManager\Utility\TCAUtility::ATTRIBUTE_FAL_DB_FIELD_NAME,
+                            'fieldname' => DefaultConfigurationProvider::ATTRIBUTE_FAL_DB_FIELD_NAME,
                             'tablenames' => 'tx_pxaproductmanager_domain_model_product',
                             'table_local' => 'sys_file',
                         ],

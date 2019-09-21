@@ -1,22 +1,23 @@
 <?php
 declare(strict_types=1);
 
-namespace Pixelant\PxaProductManager\Configuration\Provider;
+namespace Pixelant\PxaProductManager\Configuration\AttributesTCA\Concrete;
 
 use Pixelant\PxaProductManager\Domain\Model\Option;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Class SelectBoxProvider
- * @package Pixelant\PxaProductManager\Configuration\Provider
+ * @package Pixelant\PxaProductManager\Configuration\AttributesTCA\Concrete
  */
-class SelectBoxProvider extends AbstractProvider
+class SelectBoxProviderConcrete extends ConcreteAbstractProvider
 {
     /**
      * Return TCA configuration
      *
      * @return array
      */
-    public function getFieldConfiguration(): array
+    public function getTCAFieldConfiguration(): array
     {
         $configuration = $this->getInitialConfiguration();
 
@@ -37,5 +38,18 @@ class SelectBoxProvider extends AbstractProvider
         $configuration['config']['items'] = $options;
 
         return $configuration;
+    }
+
+    /**
+     * Convert product attribute raw value to TCA field value
+     *
+     * @param array $rawAttributesValues
+     * @return mixed
+     */
+    public function convertRawValueToTCAValue(array $rawAttributesValues)
+    {
+        $value = parent::convertRawValueToTCAValue($rawAttributesValues);
+
+        return GeneralUtility::trimExplode(',', $value, true);
     }
 }

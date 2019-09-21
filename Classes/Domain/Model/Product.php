@@ -185,14 +185,6 @@ class Product extends AbstractEntity
     protected $attributesGroupedBySets;
 
     /**
-     * attributeValues
-     *
-     * @TYPO3\CMS\Extbase\Annotation\ORM\Lazy
-     * @var \TYPO3\CMS\Extbase\Persistence\ObjectStorage<\Pixelant\PxaProductManager\Domain\Model\AttributeValue>
-     */
-    protected $attributeValues;
-
-    /**
      * @var int
      */
     protected $crdate;
@@ -217,7 +209,7 @@ class Product extends AbstractEntity
      *
      * @var string
      */
-    protected $serializedAttributesValues = '';
+    protected $attributesValues = '';
 
     /**
      * Product main image
@@ -1029,22 +1021,27 @@ class Product extends AbstractEntity
     /**
      * @return string
      */
-    public function getSerializedAttributesValues(): string
+    public function getAttributesValues(): string
     {
-        return $this->serializedAttributesValues;
+        return $this->attributesValues;
     }
 
     /**
-     * @param string $serializedAttributesValues
+     * Attributes values decoded
+     *
+     * @return array
      */
-    public function setSerializedAttributesValues(string $serializedAttributesValues)
+    public function getAttributesValuesArray(): array
     {
-        $this->serializedAttributesValues = $serializedAttributesValues;
+        return json_decode($this->attributesValues, true) ?: [];
     }
 
-    public function getAttributeValuesRaw(): array
+    /**
+     * @param string $attributesValues
+     */
+    public function setAttributesValues(string $attributesValues): void
     {
-        return [];
+        $this->attributesValues = $attributesValues;
     }
 
     /**

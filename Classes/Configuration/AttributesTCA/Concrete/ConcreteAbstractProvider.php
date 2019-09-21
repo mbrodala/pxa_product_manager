@@ -1,26 +1,17 @@
 <?php
 declare(strict_types=1);
 
-namespace Pixelant\PxaProductManager\Configuration\Provider;
+namespace Pixelant\PxaProductManager\Configuration\AttributesTCA\Concrete;
 
+use Pixelant\PxaProductManager\Configuration\AttributesTCA\DefaultConfigurationProvider;
 use Pixelant\PxaProductManager\Domain\Model\Attribute;
 
 /**
  * Class AbstractProvider
- * @package Pixelant\PxaProductManager\Configuration\Provider
+ * @package Pixelant\PxaProductManager\Configuration\AttributesTCA\Concrete
  */
-abstract class AbstractProvider implements AttributeTCAConfigurationProvider
+abstract class ConcreteAbstractProvider extends DefaultConfigurationProvider implements ConcreteProviderInterface
 {
-    /**
-     * Prefix for TCA fields
-     */
-    protected $attributeFieldPrefix = 'tx_pxaproductmanager_attribute_';
-
-    /**
-     * Prefix for FAL fields
-     */
-    protected $attributeFalFeildPrefix = 'tx_pxaproductmanager_file_attribute_';
-
     /**
      * @var Attribute
      */
@@ -121,13 +112,32 @@ abstract class AbstractProvider implements AttributeTCAConfigurationProvider
      *
      * @return string
      */
-    public function getFieldName(): string
+    public function getTCAFieldName(): string
     {
         $prefix = $this->attribute->isFalType()
-            ? $this->attributeFieldPrefix
-            : $this->attributeFalFeildPrefix;
+            ? static::ATTRIBUTE_FAL_FIELD_PREFIX
+            : static::ATTRIBUTE_FIELD_PREFIX;
 
         return $prefix . $this->attribute->getUid();
+    }
+
+    /**
+     * Convert product attribute raw value to TCA field value
+     *
+     * @param array $rawAttributesValues
+     * @return mixed
+     */
+    public function convertRawValueToTCAValue(array $rawAttributesValues)
+    {
+        if (array_key_exists($this->attribute->getUid(), $rawAttributesValues)) {
+            return $rawAttributesValues[$this->attribute->getUid()];
+        }
+
+        if ($this->attribute->getDefaultValue()) {
+            return $this->attribute->getDefaultValue();
+        }
+
+        return null;
     }
 
     /**

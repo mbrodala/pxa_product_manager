@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Pixelant\PxaProductManager\Configuration\Provider;
+namespace Pixelant\PxaProductManager\Configuration\AttributesTCA\Concrete;
 
 use Pixelant\PxaProductManager\Domain\Model\Attribute;
 use TYPO3\CMS\Core\Resource\File;
@@ -9,21 +9,16 @@ use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 
 /**
  * Class FalProvider
- * @package Pixelant\PxaProductManager\Configuration\Provider
+ * @package Pixelant\PxaProductManager\Configuration\AttributesTCA\Concrete
  */
-class FalProvider extends AbstractProvider
+class FalProviderConcrete extends ConcreteAbstractProvider
 {
-    /**
-     * Name of the field in DB
-     */
-    const DB_FIELD_NAME = 'attribute_files';
-
     /**
      * Return TCA configuration
      *
      * @return array
      */
-    public function getFieldConfiguration(): array
+    public function getTCAFieldConfiguration(): array
     {
         if ($this->attribute->getType() === Attribute::ATTRIBUTE_TYPE_IMAGE) {
             $allowedFileTypes = $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext'];
@@ -34,7 +29,7 @@ class FalProvider extends AbstractProvider
         }
 
         $configuration = $this->getFalFieldTCAConfiguration(
-            $this->getFieldName(),
+            $this->getTCAFieldName(),
             $this->attribute->getUid(),
             $this->attribute->getName(),
             $label,
@@ -81,7 +76,7 @@ class FalProvider extends AbstractProvider
                         'collapseAll' => true
                     ],
                     'foreign_match_fields' => [
-                        'fieldname' => self::DB_FIELD_NAME,
+                        'fieldname' => self::ATTRIBUTE_FAL_DB_FIELD_NAME,
                         'tablenames' => 'tx_pxaproductmanager_domain_model_product',
                         'table_local' => 'sys_file',
                         'pxa_attribute' => $attributeUid
