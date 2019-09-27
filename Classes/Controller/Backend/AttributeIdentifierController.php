@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Pixelant\PxaProductManager\Controller\Ajax;
+namespace Pixelant\PxaProductManager\Controller\Backend;
 
 use Pixelant\PxaProductManager\Utility\MainUtility;
 use Psr\Http\Message\ResponseInterface;
