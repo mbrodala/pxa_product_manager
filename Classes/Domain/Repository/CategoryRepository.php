@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+
 namespace Pixelant\PxaProductManager\Domain\Repository;
 
 /***************************************************************
@@ -51,6 +52,29 @@ class CategoryRepository extends \TYPO3\CMS\Extbase\Domain\Repository\CategoryRe
         'sorting' => QueryInterface::ORDER_ASCENDING,
         'title' => QueryInterface::ORDER_ASCENDING,
     ];
+
+    /**
+     * Find parent category uid
+     *
+     * @param int $uid
+     * @return int
+     */
+    public function findParentUid(int $uid): ?int
+    {
+        $query = $this->createQuery();
+
+        $query->matching(
+            $query->equals('uid', $uid)
+        );
+
+        $result = $query->execute(true);
+
+        if (!empty($result)) {
+            return (int)$result[0]['parent'];
+        }
+
+        return null;
+    }
 
     /**
      * Get categories by uids list
@@ -151,12 +175,12 @@ class CategoryRepository extends \TYPO3\CMS\Extbase\Domain\Repository\CategoryRe
     }
 
     /**
-     * Get categories uids
+     * Get categories uids by product
      *
-     * @param array $productsUids
+     * @param int $productsUid
      * @return array
      */
-    public function findUidsByProductsUids(array $productsUids): array
+    public function findUidsByProduct(int $productUid): array
     {
         $categories = [];
 
@@ -165,8 +189,8 @@ class CategoryRepository extends \TYPO3\CMS\Extbase\Domain\Repository\CategoryRe
             'sys_category'
         );
 
-        $statement = $queryBuilder
-            ->select('uid')
+        $categories = $queryBuilder
+            ->select('sys_category.uid')
             ->from('sys_category')
             ->join(
                 'sys_category',
@@ -177,9 +201,13 @@ class CategoryRepository extends \TYPO3\CMS\Extbase\Domain\Repository\CategoryRe
                 )
             )
             ->join(
-                'tx_pxaproductmanager_domain_model_product',
                 'mm',
-                'sys'
+                'tx_pxaproductmanager_domain_model_product',
+                'products',
+                $queryBuilder->expr()->eq(
+                    'mm.uid_foreign',
+                    $queryBuilder->quoteIdentifier('products.uid')
+                )
             )
             ->where(
                 $queryBuilder->expr()->eq(
@@ -190,27 +218,24 @@ class CategoryRepository extends \TYPO3\CMS\Extbase\Domain\Repository\CategoryRe
                     )
                 ),
                 $queryBuilder->expr()->eq(
-                    'fieldname',
+                    'mm.fieldname',
                     $queryBuilder->createNamedParameter(
                         'categories',
                         Connection::PARAM_STR
                     )
                 ),
                 $queryBuilder->expr()->in(
-                    'uid_foreign',
+                    'mm.uid_foreign',
                     $queryBuilder->createNamedParameter(
-                        $productsUids,
-                        Connection::PARAM_INT_ARRAY
+                        $productUid,
+                        Connection::PARAM_INT
                     )
                 )
             )
-            ->execute();
+            ->execute()
+            ->fetchAll(\PDO::FETCH_COLUMN);
 
-        while ($uid = $statement->fetchColumn(0)) {
-            $categories[] = $uid;
-        }
-
-        return array_values(array_unique($categories));
+        return $categories !== false ? $categories : [];
     }
 
     /**

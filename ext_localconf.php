@@ -1,7 +1,7 @@
 <?php
 defined('TYPO3_MODE') || die;
 
-(function() {
+(function () {
     $extKey = 'pxa_product_manager';
 
     // @codingStandardsIgnoreStart
@@ -71,7 +71,7 @@ defined('TYPO3_MODE') || die;
     if (!isset($GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['cache_pxa_pm_categories']['frontend'])) {
         $GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['cache_pxa_pm_categories'] = [
             'frontend' => \TYPO3\CMS\Core\Cache\Frontend\VariableFrontend::class,
-            'backend' => \TYPO3\CMS\Core\Cache\Backend\FileBackend::class,
+            'backend' => \TYPO3\CMS\Core\Cache\Backend\Typo3DatabaseBackend::class,
             'options' => [
                 'defaultLifetime' => 0
             ],

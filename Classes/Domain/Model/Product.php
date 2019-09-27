@@ -678,39 +678,6 @@ class Product extends AbstractEntity
         }
     }
 
-
-    /**
-     * Adds a AttributeValue
-     *
-     * @param AttributeValue $attributeValue
-     * @return void
-     */
-    public function addAttributeValue(AttributeValue $attributeValue)
-    {
-        $this->attributeValues->attach($attributeValue);
-    }
-
-    /**
-     * Removes a AttributeValue
-     *
-     * @param AttributeValue $attributeValueToRemove The AttributeValue to be removed
-     * @return void
-     */
-    public function removeAttributeValue(AttributeValue $attributeValueToRemove)
-    {
-        $this->attributeValues->detach($attributeValueToRemove);
-    }
-
-    /**
-     * Returns the attributeValues
-     *
-     * @return ObjectStorage<\Pixelant\PxaProductManager\Domain\Model\AttributeValue> $attributeValues
-     */
-    public function getAttributeValues(): ObjectStorage
-    {
-        return $this->attributeValues;
-    }
-
     /**
      * Sets the attributeValues
      *

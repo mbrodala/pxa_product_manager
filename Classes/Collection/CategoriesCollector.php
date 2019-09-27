@@ -3,8 +3,11 @@ declare(strict_types=1);
 
 namespace Pixelant\PxaProductManager\Collection;
 
-use Pixelant\PxaProductManager\Domain\Model\Category;
-use TYPO3\CMS\Extbase\Persistence\ObjectStorage;
+use Pixelant\PxaProductManager\Domain\Repository\CategoryRepository;
+use TYPO3\CMS\Core\Cache\CacheManager;
+use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Object\ObjectManager;
 
 /**
  * Class CategoriesCollector
@@ -13,27 +16,93 @@ use TYPO3\CMS\Extbase\Persistence\ObjectStorage;
 class CategoriesCollector
 {
     /**
-     * Get parents tree of given category
-     *
-     * @param Category $category
-     * @return ObjectStorage
+     * @var CategoryRepository
      */
-    public function collectParentsTree(Category $category): ObjectStorage
+    protected $categoryRepository = null;
+
+    /**
+     * CategoriesCollector constructor.
+     */
+    public function __construct()
     {
-        $collection = new ObjectStorage();
-        $collection->attach($category);
-        $uniqueParents = [];
+        $this->categoryRepository = GeneralUtility::makeInstance(ObjectManager::class)->get(CategoryRepository::class);
+    }
 
-        while ($parent = $category->getParent()) {
-            $category = $parent;
-
-            if (in_array($category->getUid(), $uniqueParents, true)) {
-                throw new \UnexpectedValueException("Parent with UID {$category->getUid()} found more than once when building parents tree", 1568977127221);
-            }
-            $uniqueParents[] = $category->getUid();
-            $collection->attach($category);
+    /**
+     * Collect all parents trees for given list
+     *
+     * @param array $categoriesUids
+     * @return array
+     */
+    public function collectParentsUidsForList(array $categoriesUids): array
+    {
+        $result = [];
+        foreach ($categoriesUids as $categoriesUid) {
+            $result = array_merge($result, $this->collectParentsUids($categoriesUid));
         }
 
-        return $collection;
+        return array_unique($result);
+    }
+
+    /**
+     * Collect all parents if given category
+     *
+     * @param int $categoryUid
+     * @return array
+     */
+    public function collectParentsUids(int $categoryUid): array
+    {
+        $parents = [$categoryUid];
+        $iteration = 0;
+
+        while ($parentUid = $this->getParentUid($categoryUid)) {
+            $parents[] = $parentUid;
+
+            $categoryUid = $parentUid;
+            $iteration++;
+
+            if ($iteration > 9999) {
+                throw new \LogicException("Reach maximum iterations level '$iteration'.", 1569580348546);
+            }
+        }
+
+        return $parents;
+    }
+
+    /**
+     * Get parent of given category
+     *
+     * @param int $categoryUid
+     * @return int|null
+     */
+    protected function getParentUid(int $categoryUid): ?int
+    {
+        $cache = $this->getRunTimeCache();
+        $cacheIdentifier = sha1('cache_pxapm_categories_parent' . $categoryUid);
+
+        if ($cache->has($cacheIdentifier)) {
+            return $cache->get($cacheIdentifier);
+        }
+
+        $parent = $this->categoryRepository->findParentUid($categoryUid);
+        $cache->set($cacheIdentifier, $parent);
+
+        return $parent;
+    }
+
+    /**
+     * @return FrontendInterface
+     */
+    protected function getRunTimeCache(): FrontendInterface
+    {
+        return GeneralUtility::makeInstance(CacheManager::class)->getCache('cache_runtime');
+    }
+
+    /**
+     * @return FrontendInterface
+     */
+    protected function getCategoriesCache(): FrontendInterface
+    {
+        return GeneralUtility::makeInstance(CacheManager::class)->getCache('cache_pxa_product_manager_category');
     }
 }

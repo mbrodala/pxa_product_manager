@@ -3,21 +3,21 @@ declare(strict_types=1);
 
 namespace Pixelant\PxaProductManager\Backend\FormDataProvider;
 
-use Pixelant\PxaProductManager\Collection\ProductAttributesCollector;
+use Pixelant\PxaProductManager\Collection\CategoriesCollector;
 use Pixelant\PxaProductManager\Configuration\AttributesTCA\AttributeConfigurationProviderFactory;
 use Pixelant\PxaProductManager\Configuration\AttributesTCA\Concrete\ConcreteProviderInterface;
+use Pixelant\PxaProductManager\Configuration\AttributesTCA\DefaultConfigurationProvider;
 use Pixelant\PxaProductManager\Domain\Model\Attribute;
 use Pixelant\PxaProductManager\Domain\Model\AttributeSet;
-use Pixelant\PxaProductManager\Domain\Model\Product;
+use Pixelant\PxaProductManager\Domain\Repository\AttributeSetRepository;
+use Pixelant\PxaProductManager\Domain\Repository\CategoryRepository;
 use Pixelant\PxaProductManager\Traits\TranslateBeTrait;
-use Pixelant\PxaProductManager\Utility\MainUtility;
-use Pixelant\PxaProductManager\Utility\TCAUtility;
 use TYPO3\CMS\Backend\Form\FormDataProviderInterface;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
-use TYPO3\CMS\Extbase\Persistence\ObjectStorage;
+use TYPO3\CMS\Extbase\Object\ObjectManager;
 
 /**
  * Form data provider hook, add TCA on a fly
@@ -39,10 +39,14 @@ class ProductEditFormInitialize implements FormDataProviderInterface
     protected $attributeValues = [];
 
     /**
-     * Product
-     * @var Product
+     * @var CategoryRepository
      */
-    protected $product = null;
+    protected $categoryRepository = null;
+
+    /**
+     * @var AttributeSetRepository
+     */
+    protected $attributeSetRepository = null;
 
     /**
      * Create TCA configuration
@@ -60,12 +64,15 @@ class ProductEditFormInitialize implements FormDataProviderInterface
 
         if (!$isNew) {
             $this->init($result['databaseRow']);
+            $allParentCategoriesUids = $this->getCategoriesCollector()->collectParentsUidsForList(
+                $this->categoryRepository->findUidsByProduct((int)$result['databaseRow']['uid'])
+            );
 
-            $attributesCollector = $this->getProductAttributesCollector();
+            $attributesSets = $this->attributeSetRepository->findByCategoriesUids($allParentCategoriesUids);
 
-            if ($attributesCollector->getAttributes()->count()) {
-                $this->populateTCA($attributesCollector->getAttributesSets(), $result['processedTca']);
-                $result['databaseRow'] = $this->simulateDataValues($attributesCollector->getAttributes(), $result['databaseRow']);
+            if (!empty($attributesSets)) {
+                $this->populateTCA($attributesSets, $result['processedTca']);
+                $result['databaseRow'] = $this->simulateDataValues($attributesSets, $result['databaseRow']);
 
                 if (is_array($result['defaultLanguageDiffRow'])) {
                     $diffKey = sprintf(
@@ -92,23 +99,26 @@ class ProductEditFormInitialize implements FormDataProviderInterface
     }
 
     /**
-     * Init product object
+     * Init
      * @param array $row
-     * @return Product
      */
     protected function init(array $row): void
     {
-        $this->product = MainUtility::singleRowToExtbaseObject(Product::class, $row);
-        $this->attributeValues = $this->product->getAttributesValuesArray();
+        $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
+
+        $this->categoryRepository = $objectManager->get(CategoryRepository::class);
+        $this->attributeSetRepository = $objectManager->get(AttributeSetRepository::class);
+
+        $this->attributeValues = json_decode($row[DefaultConfigurationProvider::ATTRIBUTES_VALUES_DB_FIELD_NAME], true);
     }
 
     /**
      * Add attributes configuration to TCA
      *
-     * @param ObjectStorage $attributesSets
+     * @param array $attributesSets
      * @param array &$tca
      */
-    protected function populateTCA(ObjectStorage $attributesSets, array &$tca)
+    protected function populateTCA(array $attributesSets, array &$tca)
     {
         $productAttributesSetsTCA = [];
 
@@ -170,21 +180,24 @@ class ProductEditFormInitialize implements FormDataProviderInterface
     /**
      * Simulate DB data for attributes
      *
-     * @param ObjectStorage $attributes
+     * @param array $attributesSets
      * @param array $dbRow
      * @return array
      */
-    protected function simulateDataValues(ObjectStorage $attributes, array $dbRow): array
+    protected function simulateDataValues(array $attributesSets, array $dbRow): array
     {
-        /** @var Attribute $attribute */
-        foreach ($attributes as $attribute) {
-            $tcaConfigurationProvider = $this->getAttributeTCAConfigurationProvider($attribute);
+        /** @var AttributeSet $attributesSet */
+        foreach ($attributesSets as $attributesSet) {
+            /** @var Attribute $attribute */
+            foreach ($attributesSet->getAttributes() as $attribute) {
+                $tcaConfigurationProvider = $this->getAttributeTCAConfigurationProvider($attribute);
 
-            $fieldName = $tcaConfigurationProvider->getTCAFieldName();
-            $fieldValue = $tcaConfigurationProvider->convertRawValueToTCAValue($this->attributeValues);
+                $fieldName = $tcaConfigurationProvider->getTCAFieldName();
+                $fieldValue = $tcaConfigurationProvider->convertRawValueToTCAValue($this->attributeValues);
 
-            if ($fieldValue !== null) {
-                $dbRow[$fieldName] = $fieldValue;
+                if ($fieldValue !== null) {
+                    $dbRow[$fieldName] = $fieldValue;
+                }
             }
         }
 
@@ -200,15 +213,24 @@ class ProductEditFormInitialize implements FormDataProviderInterface
     protected function setDiffData(array &$diffRow, array &$defaultLanguageRow)
     {
         $attributeUidToValues = [];
+        $fieldDB = DefaultConfigurationProvider::ATTRIBUTES_VALUES_DB_FIELD_NAME;
 
-        if (!empty($diffRow['serialized_attributes_values'])) {
-            $attributeUidToValues = unserialize($diffRow['serialized_attributes_values']);
+        if (!empty($diffRow[$fieldDB])) {
+            $attributeUidToValues = json_decode($diffRow[$fieldDB], true);
         }
 
         foreach ($attributeUidToValues as $attributeUid => $attributeValue) {
-            $field = TCAUtility::getAttributeTCAFieldName($attributeUid);
-            $diffRow[$field] = $attributeValue;
-            $defaultLanguageRow[$field] = $attributeValue;
+            // Diff row should have same attributes as default
+            if (!isset($this->dataProviders[$attributeUid])) {
+                continue;
+            }
+
+            $tcaConfigurationProvider = $this->dataProviders[$attributeUid];
+
+            $fieldName = $tcaConfigurationProvider->getTCAFieldName();
+
+            $diffRow[$fieldName] = $attributeValue;
+            // $defaultLanguageRow[$fieldName] = $attributeValue; @TODO why this is here?
         }
     }
 
@@ -236,11 +258,11 @@ class ProductEditFormInitialize implements FormDataProviderInterface
     }
 
     /**
-     * @return ProductAttributesCollector
+     * @return CategoriesCollector
      */
-    protected function getProductAttributesCollector(): ProductAttributesCollector
+    protected function getCategoriesCollector(): CategoriesCollector
     {
-        return GeneralUtility::makeInstance(ProductAttributesCollector::class, $this->product);
+        return GeneralUtility::makeInstance(CategoriesCollector::class);
     }
 
     /**
