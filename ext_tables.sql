@@ -10,7 +10,7 @@ CREATE TABLE tx_pxaproductmanager_domain_model_product (
   teaser text,
   description text,
   disable_single_view tinyint(1) unsigned DEFAULT '0' NOT NULL,
-  attributes_values  json DEFAULT NULL,
+  attributes_values json DEFAULT NULL,
   attributes_files int(11) unsigned DEFAULT '0',
   related_products int(11) unsigned DEFAULT '0' NOT NULL,
   images int(11) unsigned DEFAULT '0',
