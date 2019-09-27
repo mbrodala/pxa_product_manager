@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Pixelant\PxaProductManager\Domain\Repository;
 
 use Pixelant\PxaProductManager\Domain\Model\AttributeSet;
+use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Persistence\Generic\Mapper\DataMapper;
@@ -24,6 +25,10 @@ class AttributeSetRepository extends Repository
      */
     public function findByCategoriesUids(array $categoriesUids): array
     {
+        if (empty($categoriesUids)) {
+            return [];
+        }
+
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
             ->getQueryBuilderForTable('tx_pxaproductmanager_domain_model_attributeset');
 
@@ -46,6 +51,12 @@ class AttributeSetRepository extends Repository
                 $queryBuilder->expr()->eq(
                     'mm.uid_local',
                     $queryBuilder->quoteIdentifier('categories.uid')
+                )
+            )
+            ->where(
+                $queryBuilder->expr()->in(
+                    'categories.uid',
+                    $queryBuilder->createNamedParameter($categoriesUids, Connection::PARAM_INT_ARRAY)
                 )
             )
             ->execute()
