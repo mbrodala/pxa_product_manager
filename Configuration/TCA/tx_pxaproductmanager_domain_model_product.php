@@ -1,7 +1,4 @@
 <?php
-
-use Pixelant\PxaProductManager\Configuration\AttributesTCA\DefaultConfigurationProvider;
-
 defined('TYPO3_MODE') || die('Access denied.');
 
 return (function () {
@@ -310,11 +307,11 @@ return (function () {
                     $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext']
                 ),
             ],
-            DefaultConfigurationProvider::ATTRIBUTE_FAL_DB_FIELD_NAME => [
+            \Pixelant\PxaProductManager\Configuration\AttributesTCA\DefaultConfigurationProvider::ATTRIBUTE_FAL_DB_FIELD_NAME => [
                 'exclude' => 0,
-                'label' => DefaultConfigurationProvider::ATTRIBUTE_FAL_DB_FIELD_NAME,
+                'label' => \Pixelant\PxaProductManager\Configuration\AttributesTCA\DefaultConfigurationProvider::ATTRIBUTE_FAL_DB_FIELD_NAME,
                 'config' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::getFileFieldTCAConfig(
-                    DefaultConfigurationProvider::ATTRIBUTE_FAL_DB_FIELD_NAME,
+                    \Pixelant\PxaProductManager\Configuration\AttributesTCA\DefaultConfigurationProvider::ATTRIBUTE_FAL_DB_FIELD_NAME,
                     [
                         'appearance' => [
                             'createNewRelationLinkTitle' =>
@@ -325,7 +322,7 @@ return (function () {
                             'showSynchronizationLink' => false
                         ],
                         'foreign_match_fields' => [
-                            'fieldname' => DefaultConfigurationProvider::ATTRIBUTE_FAL_DB_FIELD_NAME,
+                            'fieldname' => \Pixelant\PxaProductManager\Configuration\AttributesTCA\DefaultConfigurationProvider::ATTRIBUTE_FAL_DB_FIELD_NAME,
                             'tablenames' => 'tx_pxaproductmanager_domain_model_product',
                             'table_local' => 'sys_file',
                         ],
