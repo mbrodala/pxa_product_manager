@@ -346,9 +346,6 @@
             <trans-unit id="sys_category.subcategories_tab">
                 <source>Sub-Categories</source>
             </trans-unit>
-            <trans-unit id="sys_category.pxapm_banner_image">
-                <source>Banner Image (grouped list view)</source>
-            </trans-unit>
             <trans-unit id="sys_category.pxapm_tax_rate">
                 <source>Tax rate (%)</source>
             </trans-unit>

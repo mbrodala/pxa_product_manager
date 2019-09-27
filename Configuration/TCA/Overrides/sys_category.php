@@ -160,53 +160,6 @@ call_user_func(function () {
                 ]
             ]
         ],
-        'pxapm_banner_image' => [
-            'exclude' => 1,
-            'label' => $ll . 'sys_category.pxapm_banner_image',
-            'config' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::getFileFieldTCAConfig(
-                'pxapm_banner_image',
-                [
-                    'appearance' => [
-                        'createNewRelationLinkTitle' =>
-                            'LLL:EXT:frontend/Resources/Private/Language/locallang_ttc.xlf:images.addFileReference',
-                        'showPossibleLocalizationRecords' => false,
-                        'showRemovedLocalizationRecords' => true,
-                        'showAllLocalizationLink' => false,
-                        'showSynchronizationLink' => false
-                    ],
-                    'foreign_match_fields' => [
-                        'fieldname' => 'pxapm_banner_image',
-                        'tablenames' => 'sys_category',
-                        'table_local' => 'sys_file',
-                    ],
-                    // @codingStandardsIgnoreStart
-                    'overrideChildTca' => [
-                        'types' => [
-                            '0' => [
-                                'showitem' => '
-                                --palette--;LLL:EXT:lang/locallang_tca.xlf:sys_file_reference.imageoverlayPalette;imageoverlayPalette,
-                                --palette--;;filePalette'
-                            ],
-                            \TYPO3\CMS\Core\Resource\File::FILETYPE_TEXT => [
-                                'showitem' => '
-                                --palette--;LLL:EXT:lang/locallang_tca.xlf:sys_file_reference.imageoverlayPalette;imageoverlayPalette,
-                                --palette--;;filePalette'
-                            ],
-                            \TYPO3\CMS\Core\Resource\File::FILETYPE_IMAGE => [
-                                'showitem' => '
-                                --palette--;LLL:EXT:lang/locallang_tca.xlf:sys_file_reference.imageoverlayPalette;imageoverlayPalette,
-                                --palette--;;filePalette'
-                            ]
-                        ]
-                    ],
-                    // @codingStandardsIgnoreEnd
-                    'behaviour' => [
-                        'allowLanguageSynchronization' => true
-                    ],
-                ],
-                $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext']
-            ),
-        ],
         'pxapm_tax_rate' => [
             'exclude' => 0,
             'label' => $ll . 'sys_category.pxapm_tax_rate',
