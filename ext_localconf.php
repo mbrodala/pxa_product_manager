@@ -85,14 +85,6 @@ defined('TYPO3_MODE') || die;
         '<INCLUDE_TYPOSCRIPT: source="FILE:EXT:pxa_product_manager/Configuration/TypoScript/PageTS/rteTsConfig.ts">'
     );
 
-    $ppmLocalLangBe = 'LLL:EXT:pxa_product_manager/Resources/Private/Language/locallang_be.xlf';
-    $productCustomSortingUpdateTask = Pixelant\PxaProductManager\Task\ProductCustomSortingUpdateTask::class;
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks'][$productCustomSortingUpdateTask] = [
-        'extension' => $extKey,
-        'title' => $ppmLocalLangBe . ':task.productCustomSortingUpdate.title',
-        'description' => $ppmLocalLangBe . ':task.productCustomSortingUpdate.description'
-    ];
-
     // Register field control for identifier
     $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1534315213786] = [
         'nodeName' => 'attributeIdentifierControl',

@@ -5,12 +5,7 @@ namespace Pixelant\PxaProductManager\Hook;
 
 use Pixelant\PxaProductManager\Configuration\AttributesTCA\AttributeConfigurationProviderFactory;
 use Pixelant\PxaProductManager\Configuration\AttributesTCA\DefaultConfigurationProvider as TCAConfiguration;
-use Pixelant\PxaProductManager\Domain\Model\Product;
-use Pixelant\PxaProductManager\Domain\Repository\ProductRepository;
-use Pixelant\PxaProductManager\Utility\MainUtility;
-use Pixelant\PxaProductManager\Utility\ProductUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
-use TYPO3\CMS\Extbase\Persistence\Generic\PersistenceManager;
 
 /***************************************************************
  *  Copyright notice
@@ -82,43 +77,6 @@ class DataHandlerHook
 
             if (!empty($attributesData)) {
                 $fieldsArray[TCAConfiguration::ATTRIBUTES_VALUES_DB_FIELD_NAME] = json_encode($attributesData);
-            }
-        }
-    }
-
-
-    /**
-     * @TODO remove?
-     * Set custom sorting for product
-     *
-     * @param $status
-     * @param $table
-     * @param $id
-     * @param $fieldArray
-     * @param $pObj
-     */
-    // @codingStandardsIgnoreStart
-    public function processDatamap_afterDatabaseOperations($status, $table, $id, $fieldArray, $pObj)
-    {
-        return;
-        // @codingStandardsIgnoreEnd
-        if ($table == 'tx_pxaproductmanager_domain_model_product') {
-            /** @var ProductRepository $productRepository */
-            $productRepository = MainUtility::getObjectManager()->get(ProductRepository::class);
-
-            /** @var Product $product */
-            $product = $productRepository->findByIdentifier($id);
-
-            if ($product) {
-                $product->setCustomSorting(ProductUtility::getCalculatedCustomSorting($product));
-
-                if ($product->_isDirty()) {
-                    $productRepository->update($product);
-
-                    /** @var PersistenceManager $persistenceManager */
-                    $persistenceManager = MainUtility::getObjectManager()->get(PersistenceManager::class);
-                    $persistenceManager->persistAll();
-                }
             }
         }
     }

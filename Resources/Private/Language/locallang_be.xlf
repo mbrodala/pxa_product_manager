@@ -319,15 +319,6 @@
             </trans-unit>
             <!--Extension manager configuration:END-->
 
-            <!-- Scheduler tasks:START-->
-            <trans-unit id="task.productCustomSortingUpdate.title" xml:space="preserve">
-                <source>Update product custom sorting</source>
-            </trans-unit>
-            <trans-unit id="task.productCustomSortingUpdate.description" xml:space="preserve">
-                <source>Fetches all products and updates custom sorting. Only needed when custom sorting is used and configured with TS.</source>
-            </trans-unit>
-            <!-- Scheduler tasks:END-->
-
             <!--Backend module:START-->
             <trans-unit id="be.module_name">
                 <source>Product manager</source>
