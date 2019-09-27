@@ -257,10 +257,4 @@ call_user_func(function () {
         '',
         'after:title'
     );
-
-    if (!empty($categoryWhere = \Pixelant\PxaProductManager\Utility\TCAUtility::getCategoriesTCAWhereClause())) {
-        $categoriesCongifuration = &$GLOBALS['TCA']['sys_category']['columns']['parent']['config'];
-        $categoriesCongifuration['foreign_table_where'] =
-            $categoryWhere . ' ' . $categoriesCongifuration['foreign_table_where'];
-    }
 });

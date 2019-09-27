@@ -11,12 +11,9 @@ call_user_func(function () {
         // optional: add TCA options which controls how the field is displayed. e.g position and name of the category tree.
         [
             'fieldConfiguration' => [
-                'foreign_table_where' => \Pixelant\PxaProductManager\Utility\TCAUtility::getCategoriesTCAWhereClause()
+                'foreign_table_where' => \Pixelant\PxaProductManager\Utility\TCAUtility::getCategoriesForeignTableWherePid()
                     . 'AND sys_category.sys_language_uid IN (-1, 0)'
             ]
         ]
     );
-
-    $columns = &$GLOBALS['TCA']['tx_pxaproductmanager_domain_model_product']['columns'];
-    $columns['categories']['onChange'] = 'reload';
 });

@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 namespace Pixelant\PxaProductManager\Utility;
 
+use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+
 /***************************************************************
  *
  *  Copyright notice
@@ -77,10 +80,12 @@ class TCAUtility
      * TCA where clause for categories
      * @return string
      */
-    public static function getCategoriesTCAWhereClause(): string
+    public static function getCategoriesForeignTableWherePid(): string
     {
-        return (int)ConfigurationUtility::getExtManagerConfigurationByPath('dontCheckPidForSysCategory') === 1
-            ? '' : 'AND sys_category.pid=###CURRENT_PID### ';
+        return self::getDynamicForeignTableWhere(
+            'categoriesRestriction',
+            'sys_category'
+        );
     }
 
     /**
@@ -95,8 +100,7 @@ class TCAUtility
         // we will use current_pid as default to keep backward compatibility
         $foreignTableWhere = 'AND ' . $table . '.pid = ###CURRENT_PID###';
 
-        // check and override by typoscript setting
-        $restrictionSetting = ConfigurationUtility::getExtManagerConfigurationByPath($setting);
+        $restrictionSetting = GeneralUtility::makeInstance(ExtensionConfiguration::class)->get('pxa_product_manager', $setting);
         if ($restrictionSetting) {
             switch ($restrictionSetting) {
                 case 'current_pid':
