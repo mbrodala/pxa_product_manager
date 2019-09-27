@@ -108,7 +108,7 @@ class ProductEditFormInitialize implements FormDataProviderInterface
 
         $this->categoryRepository = $objectManager->get(CategoryRepository::class);
         $this->attributeSetRepository = $objectManager->get(AttributeSetRepository::class);
-        
+
         $this->attributeValues = $this->attributesRawDataToArray($row[DefaultConfigurationProvider::ATTRIBUTES_VALUES_DB_FIELD_NAME]);
     }
 
