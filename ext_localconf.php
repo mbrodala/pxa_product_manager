@@ -94,4 +94,14 @@ defined('TYPO3_MODE') || die;
 
     // Register the class to be available in 'eval' of TCA
     $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tce']['formevals'][\Pixelant\PxaProductManager\Backend\Evaluation\LcFirstEvaluation::class] = '';
+
+    // Modify data structure of flexform
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][\TYPO3\CMS\Core\Configuration\FlexForm\FlexFormTools::class]['flexParsing'][$extKey] =
+        \Pixelant\PxaProductManager\Hook\FlexFormDataStructureHook::class;
+
+    // Plugin actions
+    $GLOBALS['TYPO3_CONF_VARS']['EXT'][$extKey]['switchableControllerActions']['items']['--div--'] = 'TEST actionGroup';
+    foreach ($newActions as $action) {
+        $GLOBALS['TYPO3_CONF_VARS']['EXT']['news']['switchableControllerActions']['newItems']['News->' . $action] = $ll . 'action.' . $action;
+    }
 })();
