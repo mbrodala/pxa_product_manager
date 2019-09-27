@@ -91,11 +91,11 @@ return (function () {
                 'config' => [
                     'type' => 'input',
                     'renderType' => 'inputDateTime',
+                    'size' => 16,
                     'eval' => 'datetime,int',
-                    'size' => 13,
                     'default' => 0,
-                    'range' => [
-                        'lower' => mktime(0, 0, 0, date('m'), date('d'), date('Y'))
+                    'behaviour' => [
+                        'allowLanguageSynchronization' => true,
                     ],
                 ],
             ],
@@ -106,11 +106,11 @@ return (function () {
                 'config' => [
                     'type' => 'input',
                     'renderType' => 'inputDateTime',
+                    'size' => 16,
                     'eval' => 'datetime,int',
-                    'size' => 13,
                     'default' => 0,
-                    'range' => [
-                        'lower' => mktime(0, 0, 0, date('m'), date('d'), date('Y'))
+                    'behaviour' => [
+                        'allowLanguageSynchronization' => true,
                     ],
                 ],
             ],

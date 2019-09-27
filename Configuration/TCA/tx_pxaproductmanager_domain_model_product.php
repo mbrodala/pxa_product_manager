@@ -90,14 +90,6 @@ return (function () {
                     'type' => 'passthrough',
                 ],
             ],
-            't3ver_label' => [
-                'label' => 'LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.versionLabel',
-                'config' => [
-                    'type' => 'input',
-                    'size' => 30,
-                    'max' => 255
-                ]
-            ],
             'hidden' => [
                 'exclude' => true,
                 'label' => 'LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.hidden',
@@ -112,11 +104,11 @@ return (function () {
                 'config' => [
                     'type' => 'input',
                     'renderType' => 'inputDateTime',
+                    'size' => 16,
                     'eval' => 'datetime,int',
-                    'size' => 13,
                     'default' => 0,
-                    'range' => [
-                        'lower' => mktime(0, 0, 0, date('m'), date('d'), date('Y'))
+                    'behaviour' => [
+                        'allowLanguageSynchronization' => true,
                     ],
                 ],
             ],
@@ -127,11 +119,11 @@ return (function () {
                 'config' => [
                     'type' => 'input',
                     'renderType' => 'inputDateTime',
+                    'size' => 16,
                     'eval' => 'datetime,int',
-                    'size' => 13,
                     'default' => 0,
-                    'range' => [
-                        'lower' => mktime(0, 0, 0, date('m'), date('d'), date('Y'))
+                    'behaviour' => [
+                        'allowLanguageSynchronization' => true,
                     ],
                 ],
             ],

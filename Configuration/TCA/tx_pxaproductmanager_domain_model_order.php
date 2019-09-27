@@ -3,7 +3,6 @@ defined('TYPO3_MODE') || die('Access denied.');
 
 return (function () {
     $ll = 'LLL:EXT:pxa_product_manager/Resources/Private/Language/locallang_db.xlf:tx_pxaproductmanager_domain_model_order';
-    $llCore = 'LLL:EXT:core/Resources/Private/Language/';
 
     return [
         'ctrl' => [
@@ -19,8 +18,6 @@ return (function () {
             'delete' => 'deleted',
             'enablecolumns' => [
                 'disabled' => 'hidden',
-                'starttime' => 'starttime',
-                'endtime' => 'endtime',
             ],
             'searchFields' => 'products',
             #'hideTable' => true,
@@ -39,14 +36,14 @@ return (function () {
         'columns' => [
             'sys_language_uid' => [
                 'exclude' => true,
-                'label' => $llCore . 'locallang_general.xlf:LGL.language',
+                'label' => 'LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.language',
                 'config' => [
                     'type' => 'select',
                     'renderType' => 'selectSingle',
                     'special' => 'languages',
                     'items' => [
                         [
-                            $llCore . 'locallang_general.xlf:LGL.allLanguages',
+                            'LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.allLanguages',
                             -1,
                             'flags-multiple'
                         ]
@@ -57,7 +54,7 @@ return (function () {
             'l10n_parent' => [
                 'displayCond' => 'FIELD:sys_language_uid:>:0',
                 'exclude' => true,
-                'label' => $llCore . 'locallang_general.xlf:LGL.l18n_parent',
+                'label' => 'LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.l18n_parent',
                 'config' => [
                     'type' => 'select',
                     'renderType' => 'selectSingle',
@@ -76,39 +73,14 @@ return (function () {
             ],
             'hidden' => [
                 'exclude' => true,
-                'label' => $llCore . 'locallang_general.xlf:LGL.hidden',
+                'label' => 'LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.hidden',
                 'config' => [
                     'type' => 'check',
                     'items' => [
                         '1' => [
-                            '0' => $llCore . 'locallang_core.xlf:labels.enabled'
+                            '0' => 'LLL:EXT:core/Resources/Private/Language/locallang_core.xlf:labels.enabled'
                         ]
                     ],
-                ],
-            ],
-            'starttime' => [
-                'exclude' => true,
-                'label' => $llCore . 'locallang_general.xlf:LGL.starttime',
-                'config' => [
-                    'type' => 'input',
-                    'size' => 13,
-                    'eval' => 'datetime,int',
-                    'renderType' => 'inputDateTime',
-                    'default' => 0,
-                ]
-            ],
-            'endtime' => [
-                'exclude' => true,
-                'label' => $llCore . 'locallang_general.xlf:LGL.endtime',
-                'config' => [
-                    'type' => 'input',
-                    'size' => 13,
-                    'eval' => 'datetime,int',
-                    'default' => 0,
-                    'renderType' => 'inputDateTime',
-                    'range' => [
-                        'upper' => mktime(0, 0, 0, 1, 1, 2038)
-                    ]
                 ],
             ],
             'complete' => [

@@ -3,7 +3,6 @@ defined('TYPO3_MODE') || die('Access denied.');
 
 return (function () {
     $ll = 'LLL:EXT:pxa_product_manager/Resources/Private/Language/locallang_db.xlf:';
-    $llCore = 'LLL:EXT:core/Resources/Private/Language/';
 
     return [
         'ctrl' => [
@@ -14,7 +13,6 @@ return (function () {
             'cruser_id' => 'cruser_id',
             'dividers2tabs' => true,
             'sortby' => 'sorting',
-            'versioningWS' => true,
             'origUid' => 't3_origuid',
             'languageField' => 'sys_language_uid',
             'transOrigPointerField' => 'l10n_parent',
@@ -41,14 +39,14 @@ return (function () {
         'columns' => [
             'sys_language_uid' => [
                 'exclude' => 1,
-                'label' => $llCore . 'locallang_general.xlf:LGL.language',
+                'label' => 'LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.language',
                 'config' => [
                     'type' => 'select',
                     'renderType' => 'selectSingle',
                     'special' => 'languages',
                     'items' => [
                         [
-                            $llCore . 'locallang_general.xlf:LGL.allLanguages',
+                            'LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.allLanguages',
                             -1,
                             'flags-multiple'
                         ],
@@ -59,7 +57,7 @@ return (function () {
             'l10n_parent' => [
                 'displayCond' => 'FIELD:sys_language_uid:>:0',
                 'exclude' => 1,
-                'label' => $llCore . 'locallang_general.xlf:LGL.l18n_parent',
+                'label' => 'LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.l18n_parent',
                 'config' => [
                     'type' => 'select',
                     'renderType' => 'selectSingle',
@@ -76,17 +74,9 @@ return (function () {
                     'type' => 'passthrough',
                 ],
             ],
-            't3ver_label' => [
-                'label' => $llCore . 'locallang_general.xlf:LGL.versionLabel',
-                'config' => [
-                    'type' => 'input',
-                    'size' => 30,
-                    'max' => 255
-                ]
-            ],
             'hidden' => [
                 'exclude' => 1,
-                'label' => $llCore . 'locallang_general.xlf:LGL.hidden',
+                'label' => 'LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.hidden',
                 'config' => [
                     'type' => 'check',
                 ]
@@ -94,30 +84,30 @@ return (function () {
             'starttime' => [
                 'exclude' => 1,
                 'l10n_mode' => 'exclude',
-                'label' => $llCore . 'locallang_general.xlf:LGL.starttime',
+                'label' => 'LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.starttime',
                 'config' => [
                     'type' => 'input',
                     'renderType' => 'inputDateTime',
+                    'size' => 16,
                     'eval' => 'datetime,int',
-                    'size' => 13,
                     'default' => 0,
-                    'range' => [
-                        'lower' => mktime(0, 0, 0, date('m'), date('d'), date('Y'))
+                    'behaviour' => [
+                        'allowLanguageSynchronization' => true,
                     ],
                 ]
             ],
             'endtime' => [
                 'exclude' => 1,
                 'l10n_mode' => 'exclude',
-                'label' => $llCore . 'locallang_general.xlf:LGL.endtime',
+                'label' => 'LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.endtime',
                 'config' => [
                     'type' => 'input',
                     'renderType' => 'inputDateTime',
+                    'size' => 16,
                     'eval' => 'datetime,int',
-                    'size' => 13,
                     'default' => 0,
-                    'range' => [
-                        'lower' => mktime(0, 0, 0, date('m'), date('d'), date('Y'))
+                    'behaviour' => [
+                        'allowLanguageSynchronization' => true,
                     ],
                 ]
             ],

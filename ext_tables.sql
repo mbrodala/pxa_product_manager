@@ -61,29 +61,9 @@ CREATE TABLE tx_pxaproductmanager_domain_model_attribute (
 #
 CREATE TABLE tx_pxaproductmanager_domain_model_option (
 
-  uid int(11) NOT NULL auto_increment,
-  pid int(11) DEFAULT '0' NOT NULL,
-
   attribute int(11) unsigned DEFAULT '0' NOT NULL,
   order_field int(11) unsigned DEFAULT '0' NOT NULL,
-  value varchar(255) DEFAULT '' NOT NULL,
-
-  sorting int(11) unsigned DEFAULT '0' NOT NULL,
-  tstamp int(11) unsigned DEFAULT '0' NOT NULL,
-  crdate int(11) unsigned DEFAULT '0' NOT NULL,
-  cruser_id int(11) unsigned DEFAULT '0' NOT NULL,
-  deleted tinyint(4) unsigned DEFAULT '0' NOT NULL,
-  hidden tinyint(4) unsigned DEFAULT '0' NOT NULL,
-
-  t3_origuid int(11) DEFAULT '0' NOT NULL,
-  sys_language_uid int(11) DEFAULT '0' NOT NULL,
-  l10n_parent int(11) DEFAULT '0' NOT NULL,
-  l10n_diffsource mediumblob,
-
-  PRIMARY KEY (uid),
-  KEY parent (pid),
-  KEY t3ver_oid (t3ver_oid,t3ver_wsid),
-  KEY language (l10n_parent,sys_language_uid)
+  value varchar(255) DEFAULT '' NOT NULL
 
 );
 
@@ -92,31 +72,11 @@ CREATE TABLE tx_pxaproductmanager_domain_model_option (
 #
 CREATE TABLE tx_pxaproductmanager_domain_model_link (
 
-  uid int(11) NOT NULL auto_increment,
-  pid int(11) DEFAULT '0' NOT NULL,
-
   product int(11) unsigned DEFAULT '0' NOT NULL,
 
   name varchar(255) DEFAULT '' NOT NULL,
   link varchar(255) DEFAULT '' NOT NULL,
-  description tinytext,
-
-  sorting int(11) unsigned DEFAULT '0' NOT NULL,
-  tstamp int(11) unsigned DEFAULT '0' NOT NULL,
-  crdate int(11) unsigned DEFAULT '0' NOT NULL,
-  cruser_id int(11) unsigned DEFAULT '0' NOT NULL,
-  deleted tinyint(4) unsigned DEFAULT '0' NOT NULL,
-  hidden tinyint(4) unsigned DEFAULT '0' NOT NULL,
-
-  t3_origuid int(11) DEFAULT '0' NOT NULL,
-  sys_language_uid int(11) DEFAULT '0' NOT NULL,
-  l10n_parent int(11) DEFAULT '0' NOT NULL,
-  l10n_diffsource mediumblob,
-
-  PRIMARY KEY (uid),
-  KEY parent (pid),
-  KEY t3ver_oid (t3ver_oid,t3ver_wsid),
-  KEY language (l10n_parent,sys_language_uid)
+  description tinytext
 
 );
 
@@ -201,32 +161,12 @@ CREATE TABLE tx_pxaproductmanager_category_attributeset_mm (
 #
 CREATE TABLE tx_pxaproductmanager_domain_model_filter (
 
-  uid int(11) NOT NULL auto_increment,
-  pid int(11) DEFAULT '0' NOT NULL,
-
   type int(11) DEFAULT '0' NOT NULL,
   name varchar(255) DEFAULT '' NOT NULL,
   label varchar(255) DEFAULT '' NOT NULL,
   parent_category int(11) unsigned DEFAULT '0',
   attribute int(11) unsigned DEFAULT '0',
-  inverse_conjunction tinyint(4) unsigned DEFAULT '0' NOT NULL,
-
-  sorting int(11) unsigned DEFAULT '0' NOT NULL,
-  tstamp int(11) unsigned DEFAULT '0' NOT NULL,
-  crdate int(11) unsigned DEFAULT '0' NOT NULL,
-  cruser_id int(11) unsigned DEFAULT '0' NOT NULL,
-  deleted tinyint(4) unsigned DEFAULT '0' NOT NULL,
-  hidden tinyint(4) unsigned DEFAULT '0' NOT NULL,
-  starttime int(11) unsigned DEFAULT '0' NOT NULL,
-  endtime int(11) unsigned DEFAULT '0' NOT NULL,
-
-  sys_language_uid int(11) DEFAULT '0' NOT NULL,
-  l10n_parent int(11) DEFAULT '0' NOT NULL,
-  l10n_diffsource mediumblob,
-
-  PRIMARY KEY (uid),
-  KEY parent (pid),
-  KEY language (l10n_parent,sys_language_uid)
+  inverse_conjunction tinyint(4) unsigned DEFAULT '0' NOT NULL
 
 );
 
@@ -248,32 +188,14 @@ CREATE TABLE tx_pxaproductmanager_product_accessories_product_mm (
 #
 CREATE TABLE tx_pxaproductmanager_domain_model_order (
 
-	uid int(11) NOT NULL auto_increment,
-	pid int(11) DEFAULT '0' NOT NULL,
-
 	products int(11) unsigned DEFAULT '0' NOT NULL,
 	fe_user int(11) unsigned DEFAULT '0' NOT NULL,
 	complete tinyint(4) unsigned DEFAULT '0' NOT NULL,
-  serialized_order_fields blob,
-  serialized_products_quantity blob,
-  external_id varchar(255) DEFAULT '' NOT NULL,
-  checkout_type varchar(255) DEFAULT 'default' NOT NULL,
+    serialized_order_fields blob,
+    serialized_products_quantity blob,
+    external_id varchar(255) DEFAULT '' NOT NULL,
+    checkout_type varchar(255) DEFAULT 'default' NOT NULL
 
-	tstamp int(11) unsigned DEFAULT '0' NOT NULL,
-	crdate int(11) unsigned DEFAULT '0' NOT NULL,
-	cruser_id int(11) unsigned DEFAULT '0' NOT NULL,
-	deleted tinyint(4) unsigned DEFAULT '0' NOT NULL,
-	hidden tinyint(4) unsigned DEFAULT '0' NOT NULL,
-	starttime int(11) unsigned DEFAULT '0' NOT NULL,
-	endtime int(11) unsigned DEFAULT '0' NOT NULL,
-
-	sys_language_uid int(11) DEFAULT '0' NOT NULL,
-	l10n_parent int(11) DEFAULT '0' NOT NULL,
-	l10n_diffsource mediumblob,
-
-	PRIMARY KEY (uid),
-	KEY parent (pid),
-	KEY language (l10n_parent,sys_language_uid)
 );
 
 #
@@ -287,71 +209,4 @@ CREATE TABLE tx_pxaproductmanager_order_product_mm (
 
   KEY uid_local (uid_local),
   KEY uid_foreign (uid_foreign)
-);
-
-#
-# Table structure for table 'tx_pxaproductmanager_domain_model_orderconfiguration'
-#
-CREATE TABLE tx_pxaproductmanager_domain_model_orderconfiguration (
-
-	uid int(11) NOT NULL auto_increment,
-	pid int(11) DEFAULT '0' NOT NULL,
-
-	name varchar(55) DEFAULT '' NOT NULL,
-	enabled_email_to_user tinyint(4) unsigned DEFAULT '0' NOT NULL,
-  enabled_replace_with_fe_user_fields tinyint(4) unsigned DEFAULT '0' NOT NULL,
-  form_fields  int(11) unsigned DEFAULT '0' NOT NULL,
-  admin_emails text,
-
-	tstamp int(11) unsigned DEFAULT '0' NOT NULL,
-	crdate int(11) unsigned DEFAULT '0' NOT NULL,
-	cruser_id int(11) unsigned DEFAULT '0' NOT NULL,
-	deleted tinyint(4) unsigned DEFAULT '0' NOT NULL,
-	hidden tinyint(4) unsigned DEFAULT '0' NOT NULL,
-	starttime int(11) unsigned DEFAULT '0' NOT NULL,
-	endtime int(11) unsigned DEFAULT '0' NOT NULL,
-
-	sys_language_uid int(11) DEFAULT '0' NOT NULL,
-	l10n_parent int(11) DEFAULT '0' NOT NULL,
-	l10n_diffsource mediumblob,
-
-	PRIMARY KEY (uid),
-	KEY parent (pid),
-	KEY language (l10n_parent,sys_language_uid)
-);
-
-#
-# Table structure for table 'tx_pxaproductmanager_domain_model_orderformfield'
-#
-CREATE TABLE tx_pxaproductmanager_domain_model_orderformfield (
-
-	uid int(11) NOT NULL auto_increment,
-	pid int(11) DEFAULT '0' NOT NULL,
-
-  type int(11) DEFAULT '0' NOT NULL,
-  order_configuration int(11) DEFAULT '0' NOT NULL,
-	name varchar(55) DEFAULT '' NOT NULL,
-  label varchar(255) DEFAULT '' NOT NULL,
-  placeholder varchar(255) DEFAULT '' NOT NULL,
-  options int(11) unsigned DEFAULT '0' NOT NULL,
-  validation_rules varchar(255) DEFAULT '' NOT NULL,
-  user_email_field tinyint(4) unsigned DEFAULT '0' NOT NULL,
-  additional_text text,
-
-	tstamp int(11) unsigned DEFAULT '0' NOT NULL,
-	crdate int(11) unsigned DEFAULT '0' NOT NULL,
-	cruser_id int(11) unsigned DEFAULT '0' NOT NULL,
-	deleted tinyint(4) unsigned DEFAULT '0' NOT NULL,
-	hidden tinyint(4) unsigned DEFAULT '0' NOT NULL,
-	starttime int(11) unsigned DEFAULT '0' NOT NULL,
-	endtime int(11) unsigned DEFAULT '0' NOT NULL,
-	sorting int(11) DEFAULT '0' NOT NULL,
-
-	sys_language_uid int(11) DEFAULT '0' NOT NULL,
-	l10n_parent int(11) DEFAULT '0' NOT NULL,
-	l10n_diffsource mediumblob,
-
-	PRIMARY KEY (uid),
-	KEY parent (pid),
-	KEY language (l10n_parent,sys_language_uid)
 );
