@@ -582,31 +582,31 @@ return (function () {
                     ]
                 ]
             ],
-        ],
-        'attributes_values' => [
-            'exclude' => true,
-            'label' => 'attributes_values',
-            'config' => [
-                'type' => 'text'
-            ]
-        ],
-        'crdate' => [
-            'label' => 'crdate',
-            'config' => [
-                'type' => 'passthrough'
-            ]
-        ],
-        'tstamp' => [
-            'label' => 'tstamp',
-            'config' => [
-                'type' => 'passthrough'
-            ]
-        ],
-        'deleted' => [
-            'label' => 'deleted',
-            'config' => [
-                'type' => 'passthrough'
-            ]
+            'attributes_values' => [
+                'exclude' => false,
+                'label' => 'attributes_values',
+                'config' => [
+                    'type' => 'text'
+                ]
+            ],
+            'crdate' => [
+                'label' => 'crdate',
+                'config' => [
+                    'type' => 'passthrough'
+                ]
+            ],
+            'tstamp' => [
+                'label' => 'tstamp',
+                'config' => [
+                    'type' => 'passthrough'
+                ]
+            ],
+            'deleted' => [
+                'label' => 'deleted',
+                'config' => [
+                    'type' => 'passthrough'
+                ]
+            ],
         ],
     ];
 })();
