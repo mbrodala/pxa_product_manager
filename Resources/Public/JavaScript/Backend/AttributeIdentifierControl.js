@@ -29,6 +29,7 @@ define(['jquery'], function ($) {
 		$.ajax({
 			type: 'POST',
 			url: TYPO3.settings.ajaxUrls['pxa-pm-attribute-identifier-convert'],
+			dataType: 'json',
 			data: {
 				'value': value
 			}
