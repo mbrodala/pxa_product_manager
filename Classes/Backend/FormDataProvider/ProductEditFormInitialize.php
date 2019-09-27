@@ -108,8 +108,8 @@ class ProductEditFormInitialize implements FormDataProviderInterface
 
         $this->categoryRepository = $objectManager->get(CategoryRepository::class);
         $this->attributeSetRepository = $objectManager->get(AttributeSetRepository::class);
-
-        $this->attributeValues = json_decode($row[DefaultConfigurationProvider::ATTRIBUTES_VALUES_DB_FIELD_NAME], true);
+        
+        $this->attributeValues = $this->attributesRawDataToArray($row[DefaultConfigurationProvider::ATTRIBUTES_VALUES_DB_FIELD_NAME]);
     }
 
     /**
@@ -232,6 +232,21 @@ class ProductEditFormInitialize implements FormDataProviderInterface
             $diffRow[$fieldName] = $attributeValue;
             // $defaultLanguageRow[$fieldName] = $attributeValue; @TODO why this is here?
         }
+    }
+
+    /**
+     * Convert raw data to array
+     *
+     * @param string|null $rawData
+     * @return array
+     */
+    protected function attributesRawDataToArray(?string $rawData): array
+    {
+        if ($rawData) {
+            return json_decode($rawData, true);
+        }
+
+        return [];
     }
 
     /**
