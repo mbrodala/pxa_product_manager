@@ -100,8 +100,5 @@ defined('TYPO3_MODE') || die;
         \Pixelant\PxaProductManager\Hook\FlexFormDataStructureHook::class;
 
     // Plugin actions
-    $GLOBALS['TYPO3_CONF_VARS']['EXT'][$extKey]['switchableControllerActions']['items']['--div--'] = 'TEST actionGroup';
-    foreach ($newActions as $action) {
-        $GLOBALS['TYPO3_CONF_VARS']['EXT']['news']['switchableControllerActions']['newItems']['News->' . $action] = $ll . 'action.' . $action;
-    }
+    \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\Pixelant\PxaProductManager\Utility\FlexformUtility::class)->registerDefaultAction();
 })();
