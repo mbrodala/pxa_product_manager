@@ -60,8 +60,13 @@ class FlexFormDataStructureHook implements SingletonInterface
      * @param array $identifier
      * @return array
      */
-    public function getDataStructureIdentifierPostProcess(array $fieldTCA, string $table, string $field, array $row, array $identifier): array
-    {
+    public function getDataStructureIdentifierPostProcess(
+        array $fieldTCA,
+        string $table,
+        string $field,
+        array $row,
+        array $identifier
+    ): array {
         if ($identifier['dataStructureKey'] === $this->identifier
             && is_string($row['pi_flexform'])
             && !empty($row['pi_flexform'])
@@ -94,7 +99,6 @@ class FlexFormDataStructureHook implements SingletonInterface
 
                 $dataStructure = $this->modifyDataStructureAccordingToSelectAction($dataStructure);
             }
-            \TYPO3\CMS\Extbase\Utility\DebuggerUtility::var_dump($dataStructure,'Debug',16);
         }
 
         return $dataStructure;

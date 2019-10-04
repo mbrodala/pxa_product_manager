@@ -25,39 +25,46 @@ class FlexformUtility
             'label' => 'flexform.mode.product_list',
             'flexforms' => [
                 'EXT:pxa_product_manager/Configuration/FlexForms/Parts/flexform_list.xml',
-                'EXT:pxa_product_manager/Configuration/FlexForms/Parts/flexform_show.xml',
                 'EXT:pxa_product_manager/Configuration/FlexForms/Parts/flexform_products_orderings.xml',
+                'EXT:pxa_product_manager/Configuration/FlexForms/Parts/flexform_show.xml',
             ],
         ],
         [
             'action' => 'Product->show',
             'label' => 'flexform.mode.product_show',
-            'flexforms' => ['show'],
+            'flexforms' => [
+                'EXT:pxa_product_manager/Configuration/FlexForms/Parts/flexform_show.xml',
+            ],
+            'excludeFields' => [
+                'settings.pids.singleViewPid'
+            ]
         ],
         [
             'action' => 'Product->customProductsList;Product->show',
             'label' => 'flexform.mode.product_custom_products_list',
+            'flexforms' => [
+                'EXT:pxa_product_manager/Configuration/FlexForms/Parts/flexform_custom_products_list.xml',
+                'EXT:pxa_product_manager/Configuration/FlexForms/Parts/flexform_show.xml',
+            ]
         ],
         [
             'action' => 'Product->lazyList;AjaxProducts->loadLazyList;Product->show',
             'label' => 'flexform.mode.product_lazy_list',
-            'flexforms' => ['list', 'show'],
+            'flexforms' => [
+                'EXT:pxa_product_manager/Configuration/FlexForms/Parts/flexform_lazy_list.xml',
+                'EXT:pxa_product_manager/Configuration/FlexForms/Parts/flexform_products_orderings.xml',
+            ],
         ],
         [
             'action' => 'Product->wishList;Product->finishOrder',
             'label' => 'flexform.mode.product_wish_list',
+            'flexforms' => [
+                'EXT:pxa_product_manager/Configuration/FlexForms/Parts/flexform_with_list.xml'
+            ]
         ],
         [
             'action' => 'Product->compareView',
             'label' => 'flexform.mode.product_compare_view',
-        ],
-        [
-            'action' => '--div--',
-            'label' => 'flexform.mode.navigation_controller',
-        ],
-        [
-            'action' => 'Navigation->show',
-            'label' => 'flexform.mode.navigation_show',
         ],
     ];
 
@@ -74,7 +81,8 @@ class FlexformUtility
             $this->addSwitchableControllerAction(
                 $action['action'],
                 $this->ll . $action['label'],
-                $action['flexforms'] ?? []
+                $action['flexforms'] ?? [],
+                $action['excludeFields'] ?? []
             );
         }
     }
