@@ -16,24 +16,17 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 class FlexFormDataStructureHook implements SingletonInterface
 {
     /**
+     * Default flexform loaded for all actions
+     * @var string
+     */
+    public static $defaultFlexform = 'EXT:pxa_product_manager/Configuration/FlexForms/Parts/flexform_common.xml';
+
+    /**
      * Flexform identifier
      *
      * @var string
      */
     protected $identifier = 'pxaproductmanager_pi1,list';
-
-    /**
-     * Default flexform loaded for all actions
-     * @var string
-     */
-    protected $defaultFlexform = 'EXT:pxa_product_manager/Configuration/FlexForms/Parts/flexform_common.xml';
-
-    /**
-     * Flexform actions
-     *
-     * @var array
-     */
-    protected $actions = [];
 
     /**
      * Last selected action
@@ -43,11 +36,16 @@ class FlexFormDataStructureHook implements SingletonInterface
     protected $lastSelectedAction = '';
 
     /**
+     * @var FlexformUtility
+     */
+    protected $flexformUtility = null;
+
+    /**
      * Initialize
      */
     public function __construct()
     {
-        $this->actions = $this->getFlexformUtility()->getAllRegisteredActions();
+        $this->flexformUtility = $this->getFlexformUtility();
     }
 
     /**
@@ -95,7 +93,7 @@ class FlexFormDataStructureHook implements SingletonInterface
 
             if (!empty($this->lastSelectedAction)) {
                 // Add default conf
-                $dataStructure = $this->updateDataStructureWithFlexform($dataStructure, $this->defaultFlexform);
+                $dataStructure = $this->updateDataStructureWithFlexform($dataStructure, static::$defaultFlexform);
 
                 $dataStructure = $this->modifyDataStructureAccordingToSelectAction($dataStructure);
             }
@@ -112,12 +110,7 @@ class FlexFormDataStructureHook implements SingletonInterface
      */
     protected function modifyDataStructureAccordingToSelectAction(array $dataStructure): array
     {
-        foreach ($this->actions as $action) {
-            if ($action['action'] === $this->lastSelectedAction) {
-                $lastActionConfig = $action;
-                break;
-            }
-        }
+        $lastActionConfig = $this->flexformUtility->getSwitchableControllerActionConfiguration($this->lastSelectedAction);
 
         if (isset($lastActionConfig)) {
             // Load sub-form
@@ -170,7 +163,7 @@ class FlexFormDataStructureHook implements SingletonInterface
     {
         $items = &$dataStructure['sheets']['sDEF']['ROOT']['el']['switchableControllerActions']['TCEforms']['config']['items'];
 
-        foreach ($this->actions as $action) {
+        foreach ($this->flexformUtility->getAllRegisteredActions() as $action) {
             $items[] = [
                 $action['label'], $action['action']
             ];

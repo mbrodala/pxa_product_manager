@@ -114,6 +114,23 @@ class FlexformUtility
     }
 
     /**
+     * Get action configuration
+     *
+     * @param string $action
+     * @return array|null
+     */
+    public function getSwitchableControllerActionConfiguration(string $action): ?array
+    {
+        foreach ($this->getAllRegisteredActions() as $registeredAction) {
+            if ($registeredAction['action'] === $action) {
+                return $registeredAction;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Get all actions
      *
      * @return array
