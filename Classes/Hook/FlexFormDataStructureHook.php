@@ -125,7 +125,7 @@ class FlexFormDataStructureHook implements SingletonInterface
                 $dataStructure = $this->updateDataStructureWithFlexform($dataStructure, $flexform);
             }
 
-            // Remove exclude fields
+            // Exclude fields
             foreach ($lastActionConfig['excludeFields'] as $excludeField) {
                 foreach ($dataStructure['sheets'] as $sheet => $sheetConf) {
                     foreach ($sheetConf['ROOT']['el'] as $field => $fieldConf) {
