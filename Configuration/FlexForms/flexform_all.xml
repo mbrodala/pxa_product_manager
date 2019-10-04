@@ -79,12 +79,6 @@
                     <settings.pagePid>
                         <TCEforms>
                             <label>LLL:EXT:pxa_product_manager/Resources/Private/Language/locallang_be.xlf:flexform.pagePid</label>
-                            <displayCond>
-                                <AND>
-                                    <numIndex index="0">FIELD:switchableControllerActions:REQ:true</numIndex>
-                                    <numIndex index="1">FIELD:switchableControllerActions:!=:Filter->showFilter</numIndex>
-                                </AND>
-                            </displayCond>
                             <config>
                                 <type>group</type>
                                 <internal_type>db</internal_type>
