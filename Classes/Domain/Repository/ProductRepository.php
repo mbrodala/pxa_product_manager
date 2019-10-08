@@ -30,6 +30,7 @@ use Pixelant\PxaProductManager\Domain\Model\DTO\Demand;
 use Pixelant\PxaProductManager\Domain\Model\DTO\DemandInterface;
 use Pixelant\PxaProductManager\Domain\Model\Filter;
 use Pixelant\PxaProductManager\Domain\Model\Product;
+use Pixelant\PxaProductManager\Utility\CategoryUtility;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
@@ -79,10 +80,61 @@ class ProductRepository extends AbstractDemandRepository
      * @param DemandInterface|Demand $demand
      * @return QueryResultInterface
      */
+    public function findDemandedByQueryBuilder(DemandInterface $demand): QueryResultInterface
+    {
+        $queryBuilder = $this->getFindDemandedQueryBuilder($demand);
+        $statement = $this->getSQL($queryBuilder);
+        $query = $this->createQuery();
+        return $query->statement($statement)->execute();
+        // return $queryBuilder->execute()->fetchAll();
+    }
+
+
+    /**
+     * Count results for demand
+     *
+     * @param DemandInterface $demand
+     * @return int
+     */
+    public function countByDemand(DemandInterface $demand): int
+    {
+        $queryBuilder = $this->getFindDemandedQueryBuilder($demand);
+        $statement = $this->getSQL($queryBuilder);
+        $query = $this->createQuery();
+        return $query->statement($statement)->count();
+    }
+
+    /**
+     * Override basic method. Set special ordering for categories if it's not multiple
+     *
+     * @param DemandInterface|Demand $demand
+     * @return QueryResultInterface
+     */
     public function findDemanded(DemandInterface $demand): QueryResultInterface
     {
         if ($demand->getOrderBy() !== 'categories' || count($demand->getCategories()) > 1) {
-            return parent::findDemanded($demand);
+            // return parent::findDemanded($demand);
+            $queryBuilder = $this->getFindDemandedQueryBuilder($demand);
+            $statement = $this->getSQL($queryBuilder);
+            /*
+            // @TODO: Start of debug, remember to remove when debug is done!
+            error_log(
+                print_r(
+                    [
+                        '@' => date('Y-m-d H:i:s'),
+                        'class' => __CLASS__,
+                        'function' => __FUNCTION__,
+                        'statement' => $statement,
+                    ],
+                    true
+                ),
+                3,
+                '/tmp/php_debug.log'
+            );
+            // @TODO: End of debug, remember to remove when debug is done!
+            */
+            $query = $this->createQuery();
+            return $query->statement($statement)->execute();
         } else {
             /** @var QueryBuilder $queryBuilder */
             $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
@@ -563,5 +615,332 @@ class ProductRepository extends AbstractDemandRepository
             $constraints,
             'or'
         );
+    }
+    /**
+     * Override basic method. Set special ordering for categories if it's not multiple
+     *
+     * @param DemandInterface|Demand $demand
+     * @return QueryBuilder
+     */
+    protected function getFindDemandedQueryBuilder(DemandInterface $demand): QueryBuilder
+    {
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('tx_pxaproductmanager_domain_model_product');
+
+        // standard query part, pid and allowed categories
+        $queryBuilder->select('product.*')
+            ->from('tx_pxaproductmanager_domain_model_product', 'product')
+            ->join(
+                'product',
+                'sys_category_record_mm',
+                'allowedProductCategories',
+                $queryBuilder->expr()->eq(
+                    'allowedProductCategories.uid_foreign',
+                    $queryBuilder->quoteIdentifier('product.uid')
+                )
+            )
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'product.pid',
+                    $queryBuilder->createNamedParameter($demand->getStoragePid(), \PDO::PARAM_INT)
+                ),
+                $queryBuilder->expr()->in(
+                    'allowedProductCategories.uid_local',
+                    $queryBuilder->createNamedParameter(
+                        $demand->getCategories(),
+                        \TYPO3\CMS\Core\Database\Connection::PARAM_INT_ARRAY
+                    )
+                )
+            );
+
+        $this->addQueryBuilderIncludeDiscontinued($demand, $queryBuilder);
+
+        $this->addQueryBuilderFilters($demand, $queryBuilder);
+
+        $this->addQueryBuilderOrderBy($demand, $queryBuilder);
+
+        if ($demand->getLimit()) {
+            $queryBuilder->setMaxResults($demand->getLimit());
+        }
+        if ($demand->getOffSet()) {
+            $queryBuilder->setFirstResult($demand->getOffSet());
+        }
+
+        return $queryBuilder;
+    }
+
+    /**
+     * Override basic method. Set special ordering for categories if it's not multiple
+     *
+     * @param DemandInterface|Demand $demand
+     * @return void
+     */
+    protected function addQueryBuilderFilters(DemandInterface $demand, QueryBuilder &$queryBuilder): void
+    {
+        $ranges = [];
+        if (!empty($demand->getFilters())) {
+            foreach ($demand->getFilters() as $identifier => $filterData) {
+                if (!empty($filterData['value']) && !empty($filterData['uid'])) {
+                    /** @var Filter $filter */
+                    $filter = $this->filterRepository->findByUid((int)$filterData['uid']);
+                    if ($filter === null) {
+                        continue;
+                    }
+                    switch ($filter->getType()) {
+                        case Filter::TYPE_ATTRIBUTES:
+                            $subQuery = $this->getSubQueryForAttributes($queryBuilder, $filter, $filterData['value']);
+                            $queryBuilder->andWhere(
+                                $queryBuilder->expr()->in(
+                                    'product.uid',
+                                    '('.$subQuery.')'
+                                )
+                            );
+                            break;
+                        case Filter::TYPE_CATEGORIES:
+                            $subQuery = $this->getSubQueryForCategories($queryBuilder, $filter, $filterData['value']);
+                            $queryBuilder->andWhere(
+                                $queryBuilder->expr()->in(
+                                    'product.uid',
+                                    '('.$subQuery.')'
+                                )
+                            );
+                            break;
+                        case Filter::TYPE_ATTRIBUTES_MINMAX:
+                            list($value, $rangeType) = $filterData['value'];
+                            $rangeKey = (int)$filterData['attributeUid'];
+                            $ranges[$rangeKey][$rangeType] = $value;
+                            $ranges[$rangeKey]['filter'] = $filter;
+                            break;
+                        default:
+                            // only two are supported for now
+                    }
+                }
+            }
+        }
+
+        // go through ranges after all filters have been processed
+        // since they can have value from two filter inputs
+        if (!empty($ranges)) {
+            foreach ($ranges as $attributeId => $range) {
+                $subQuery = $this->getSubQueryForAttributesMinMax($queryBuilder, $range);
+                $queryBuilder->andWhere(
+                    $queryBuilder->expr()->in(
+                        'product.uid',
+                        '('.$subQuery.')'
+                    )
+                );
+            }
+        }
+    }
+
+    /**
+     * Get Subquery for attributes
+     *
+     * @param QueryBuilder $queryBuilder Use same querybuilder so we can replace correct params later
+     * @param Filter $filter
+     * @param array $values
+     * @return string
+     */
+    protected function getSubQueryForAttributes(QueryBuilder &$queryBuilder, Filter $filter, array $values): string
+    {
+        $subQueryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('tx_pxaproductmanager_domain_model_attributevalue');
+
+        $subQueryBuilder->select('product')
+            ->from('tx_pxaproductmanager_domain_model_attributevalue')
+            ->where(
+                $subQueryBuilder->expr()->eq(
+                    'attribute',
+                    $queryBuilder->createNamedParameter($filter->getAttribute()->getUid(), \PDO::PARAM_INT)
+                )
+            );
+
+        $filterConjunction = $filter->getConjunctionAsString();
+        if ($filterConjunction === Filter::CONJUNCTION_AND && count($values) > 0) {
+            foreach ($values as $value) {
+                $subQueryBuilder->andWhere(
+                    $subQueryBuilder->expr()->eq(
+                        'value',
+                        $queryBuilder->createNamedParameter($value, \PDO::PARAM_STR)
+                    )
+                );
+            }
+        } else {
+            $subQueryBuilder->andWhere(
+                $subQueryBuilder->expr()->in(
+                    'value',
+                    $queryBuilder->createNamedParameter(
+                        $values,
+                        \TYPO3\CMS\Core\Database\Connection::PARAM_STR_ARRAY
+                    )
+                )
+            );
+        }
+        return $subQueryBuilder->getSQL();
+    }
+
+    /**
+     * Get Subquery for categories
+     *
+     * @param QueryBuilder $queryBuilder Use same querybuilder so we can replace correct params later
+     * @param Filter $filter
+     * @param array $values
+     * @return string
+     */
+    protected function getSubQueryForCategories(QueryBuilder &$queryBuilder, Filter $filter, array $values): string
+    {
+        // Include "child" categories
+        $categories = CategoryUtility::getCategoriesRootLine($values);
+        $categories = array_map('intval', $categories);
+
+        $subQueryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('tx_pxaproductmanager_domain_model_attributevalue');
+
+        $subQueryBuilder->select('uid_foreign')
+            ->from('sys_category_record_mm');
+
+        $filterConjunction = $filter->getConjunctionAsString();
+        if ($filterConjunction === Filter::CONJUNCTION_AND && count($categories) > 0) {
+            foreach ($categories as $value) {
+                $subQueryBuilder->andWhere(
+                    $subQueryBuilder->expr()->eq(
+                        'uid_local',
+                        $queryBuilder->createNamedParameter($value, \PDO::PARAM_STR)
+                    )
+                );
+            }
+        } else {
+            $subQueryBuilder->andWhere(
+                $subQueryBuilder->expr()->in(
+                    'uid_local',
+                    $queryBuilder->createNamedParameter(
+                        $categories,
+                        \TYPO3\CMS\Core\Database\Connection::PARAM_INT_ARRAY
+                    )
+                )
+            );
+        }
+        return $subQueryBuilder->getSQL();
+    }
+
+    /**
+     * Get Subquery for attributes minmax
+     *
+     * @param QueryBuilder $queryBuilder Use same querybuilder so we can replace correct params later
+     * @param Filter $filter
+     * @param array $values
+     * @return string
+     */
+    protected function getSubQueryForAttributesMinMax(QueryBuilder &$queryBuilder, array $range): string
+    {
+        $subQueryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('tx_pxaproductmanager_domain_model_attributevalue');
+
+        $subQueryBuilder->select('product')
+            ->from('tx_pxaproductmanager_domain_model_attributevalue')
+            ->where(
+                $subQueryBuilder->expr()->eq(
+                    'attribute',
+                    $queryBuilder->createNamedParameter($range['filter']->getUid(), \PDO::PARAM_INT)
+                )
+            );
+        if (isset($range['min'])) {
+            $subQueryBuilder->andWhere(
+                $subQueryBuilder->expr()->gte(
+                    'value',
+                    $queryBuilder->createNamedParameter((int)$range['min'], \PDO::PARAM_INT)
+                )
+            );
+        }
+        if (isset($range['max'])) {
+            $subQueryBuilder->andWhere(
+                $subQueryBuilder->expr()->lte(
+                    'value',
+                    $queryBuilder->createNamedParameter((int)$range['max'], \PDO::PARAM_INT)
+                )
+            );
+        }
+        return $subQueryBuilder->getSQL();
+    }
+
+    /**
+     * Add discontinued part to query if needed
+     *
+     * @param DemandInterface $demand
+     * @param QueryBuilder $queryBuilder
+     * @return void
+     */
+    protected function addQueryBuilderIncludeDiscontinued(DemandInterface $demand, QueryBuilder &$queryBuilder): void
+    {
+        // include discontinued part
+        if (!$demand->getIncludeDiscontinued()) {
+            $ts = new \DateTime('00:00');
+            $queryBuilder->andWhere(
+                $queryBuilder->expr()->orX(
+                    $queryBuilder->expr()->eq(
+                        'product.discontinued',
+                        $queryBuilder->createNamedParameter(0, \PDO::PARAM_INT)
+                    ),
+                    $queryBuilder->expr()->gt(
+                        'discontinued',
+                        $queryBuilder->createNamedParameter($ts->getTimestamp(), \PDO::PARAM_INT)
+                    )
+                )
+            );
+        }
+    }
+
+    /**
+     * Add orderBy to query if needed
+     *
+     * @param DemandInterface $demand
+     * @param QueryBuilder $queryBuilder
+     * @return void
+     */
+    protected function addQueryBuilderOrderBy(DemandInterface $demand, QueryBuilder &$queryBuilder): void
+    {
+        // If sorting is set by categories, we need to create a special quer
+        if ($demand->getOrderBy()
+            && GeneralUtility::inList($demand->getOrderByAllowed(), $demand->getOrderBy())
+        ) {
+            if ($demand->getOrderBy() !== 'categories') {
+                switch (strtolower($demand->getOrderDirection())) {
+                    case 'desc':
+                        $orderDirection = QueryInterface::ORDER_DESCENDING;
+                        break;
+                    default:
+                        $orderDirection = QueryInterface::ORDER_ASCENDING;
+                }
+                $queryBuilder->orderBy(
+                    $demand->getOrderBy(),
+                    $orderDirection
+                );
+                if ($demand->getOrderBy() !== 'name') {
+                    $queryBuilder->addOrderBy(
+                        'name',
+                        'ASC'
+                    );
+                }
+            } else {
+                // TODO: make it possible to order by categories
+            }
+        }
+    }
+
+    protected function getSQL(QueryBuilder $queryBuilder): string
+    {
+        $queryParameters = [];
+        foreach ($queryBuilder->getParameters() as $key => $value) {
+            // prefix array keys with ':'
+            //all non numeric values have to be quoted
+            if (is_array($value)) {
+                $value = implode(',', $value);
+                $queryParameters[':' . $key] = (is_numeric($value[0])) ? $value : "'" . $value . "'";
+            } else {
+                $queryParameters[':' . $key] = (is_numeric($value)) ? $value : "'" . $value . "'";
+            }
+        }
+        $statement = strtr($queryBuilder->getSQL(), $queryParameters);
+        return $statement;
     }
 }
