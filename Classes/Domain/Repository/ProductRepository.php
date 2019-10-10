@@ -428,57 +428,19 @@ class ProductRepository extends AbstractDemandRepository
                 $filterConjunction = $filter->getConjunctionAsString();
                 switch ($filter->getType()) {
                     case Filter::TYPE_ATTRIBUTES:
-                        $filterConstraints = [];
-
-                        if ($filterConjunction === 'and') {
-                            $filterOrConstraints = [];
-                            foreach ($filterData['value'] as $value) {
-                                $filterOrConstraints[] = $query->equals('attributeValues.value', $value);
-                            }
-                            $filterConstraints[] = $query->logicalAnd([
-                                $query->equals('attributeValues.attribute', (int)$filterData['attributeUid']),
-                                $this->createConstraintFromConstraintsArray($query, $filterOrConstraints, 'and')
-                            ]);
-
-                        } else {
-                            $filterConstraints[] = $query->logicalAnd([
-                                $query->equals('attributeValues.attribute', (int)$filterData['attributeUid']),
-                                $query->in('attributeValues.value', $filterData['value'])
-                            ]);
-                        }
-                        /*$attributeValues = $this->attributeValueRepository->findAttributeValuesByAttributeAndValues(
-                            (int)$filterData['attributeUid'],
-                            $filterData['value'],
-                            $filterConjunction,
-                            true
-                        );
-                        if (empty($attributeValues)) {
-                            // force no result for filter constraint if no value was found but filter was set on FE
-                            $filterConstraints[] = $query->contains('attributeValues', 0);
-                        } else {
-                            $filterConstraints[] = $query->in(
-                                'attributeValues.uid',
-                                array_map(
-                                    function ($attributeValue) {
-                                        return $attributeValue['uid'];
-                                    },
-                                    $attributeValues
-                                )
-                            );
-                        }*/
-                        /*\TYPO3\CMS\Extbase\Utility\DebuggerUtility::var_dump($filterData,'Debug',16);
-                        die;*/
-                        /*$filterConstraints[] = $query->logicalAnd(
+                        $constraints[] = $query->logicalAnd([
                             $query->equals('attributeValues.attribute', (int)$filterData['attributeUid']),
-                            $query->equals('attributeValues.value', $filterData['value'][0])
-                        );*/
-                        if (!empty($filterConstraints)) {
-                            $constraints[] = $this->createConstraintFromConstraintsArray(
+                            $this->createConstraintFromConstraintsArray(
                                 $query,
-                                $filterConstraints,
-                                'or'
-                            );
-                        }
+                                array_map(
+                                    function ($filterValue) use ($query) {
+                                        return $this->createInRowQuery($query, 'attributeValues.value', $filterValue);
+                                    },
+                                    $filterData['value']
+                                ),
+                                $filterConjunction
+                            )
+                        ]);
                         break;
                     case Filter::TYPE_CATEGORIES:
                         $categoriesConstraints = [];
@@ -546,6 +508,24 @@ class ProductRepository extends AbstractDemandRepository
         }
 
         return false;
+    }
+
+    /**
+     * Help to find in row with list of values (2,3,4) and value 3
+     *
+     * @param QueryInterface $query
+     * @param $field
+     * @param $value
+     * @return \TYPO3\CMS\Extbase\Persistence\Generic\Qom\OrInterface
+     */
+    protected function createInRowQuery(QueryInterface $query, $field, $value)
+    {
+        return $query->logicalOr([
+            $query->like($field, $value . ',%'),
+            $query->like($field, '%,' . $value . ',%'),
+            $query->like($field, '%,' . $value),
+            $query->equals($field, $value)
+        ]);
     }
 
     /**
