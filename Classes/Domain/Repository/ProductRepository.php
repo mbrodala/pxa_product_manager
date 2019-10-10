@@ -429,7 +429,24 @@ class ProductRepository extends AbstractDemandRepository
                 switch ($filter->getType()) {
                     case Filter::TYPE_ATTRIBUTES:
                         $filterConstraints = [];
-                        $attributeValues = $this->attributeValueRepository->findAttributeValuesByAttributeAndValues(
+
+                        if ($filterConjunction === 'and') {
+                            $filterOrConstraints = [];
+                            foreach ($filterData['value'] as $value) {
+                                $filterOrConstraints[] = $query->equals('attributeValues.value', $value);
+                            }
+                            $filterConstraints[] = $query->logicalAnd([
+                                $query->equals('attributeValues.attribute', (int)$filterData['attributeUid']),
+                                $this->createConstraintFromConstraintsArray($query, $filterOrConstraints, 'and')
+                            ]);
+
+                        } else {
+                            $filterConstraints[] = $query->logicalAnd([
+                                $query->equals('attributeValues.attribute', (int)$filterData['attributeUid']),
+                                $query->in('attributeValues.value', $filterData['value'])
+                            ]);
+                        }
+                        /*$attributeValues = $this->attributeValueRepository->findAttributeValuesByAttributeAndValues(
                             (int)$filterData['attributeUid'],
                             $filterData['value'],
                             $filterConjunction,
@@ -439,11 +456,22 @@ class ProductRepository extends AbstractDemandRepository
                             // force no result for filter constraint if no value was found but filter was set on FE
                             $filterConstraints[] = $query->contains('attributeValues', 0);
                         } else {
-                            foreach ($attributeValues as $attributeValue) {
-                                $filterConstraints[] = $query->contains('attributeValues', $attributeValue['uid']);
-                            }
-                        }
-
+                            $filterConstraints[] = $query->in(
+                                'attributeValues.uid',
+                                array_map(
+                                    function ($attributeValue) {
+                                        return $attributeValue['uid'];
+                                    },
+                                    $attributeValues
+                                )
+                            );
+                        }*/
+                        /*\TYPO3\CMS\Extbase\Utility\DebuggerUtility::var_dump($filterData,'Debug',16);
+                        die;*/
+                        /*$filterConstraints[] = $query->logicalAnd(
+                            $query->equals('attributeValues.attribute', (int)$filterData['attributeUid']),
+                            $query->equals('attributeValues.value', $filterData['value'][0])
+                        );*/
                         if (!empty($filterConstraints)) {
                             $constraints[] = $this->createConstraintFromConstraintsArray(
                                 $query,
