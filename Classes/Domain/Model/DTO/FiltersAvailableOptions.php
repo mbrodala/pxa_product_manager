@@ -29,6 +29,15 @@ class FiltersAvailableOptions implements \JsonSerializable
     protected $availableAttributes = [];
 
     /**
+     * Allow all attributes and categories
+     */
+    public function allowAll()
+    {
+        $this->availableAttributes[self::ALL_FILTERS_KEY] = '*';
+        $this->availableCategories[self::ALL_FILTERS_KEY] = '*';
+    }
+
+    /**
      * Set available filter categories for non-active filter
      *
      * @param array $categories

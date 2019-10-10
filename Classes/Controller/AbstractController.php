@@ -247,14 +247,22 @@ class AbstractController extends ActionController
      * Create object with available filters options
      *
      * @param Demand $demand
+     * @param bool $hideNoResult
      * @return FiltersAvailableOptions
      */
-    protected function createFiltersAvailableOptions(Demand $demand): FiltersAvailableOptions
+    protected function createFiltersAvailableOptions(Demand $demand, bool $hideNoResult = false): FiltersAvailableOptions
     {
+        $filtersAvailableOptions = GeneralUtility::makeInstance(FiltersAvailableOptions::class);
+
+        if (!$hideNoResult) {
+            $filtersAvailableOptions->allowAll();
+
+            return $filtersAvailableOptions;
+        }
+
         $filtersDemand = clone $demand;
         $filtersDemand->setLimit(0);
         $filtersDemand->setOffset(0);
-        $filtersAvailableOptions = GeneralUtility::makeInstance(FiltersAvailableOptions::class);
         // Find with all filters
         $allAvailableProducts = $this->productRepository->findDemandedRaw($filtersDemand);
 

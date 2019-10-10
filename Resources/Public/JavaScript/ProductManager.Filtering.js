@@ -255,6 +255,12 @@
 
 						// If it's selected then it's active by default
 						if ($option.is(':selected') === false) {
+
+							if (availableListOfOptionsForFilter === '*') {
+								$option.prop('disabled', false);
+								return;
+							}
+
 							let inList;
 
 							switch (filterType) {
@@ -323,6 +329,11 @@
 				let optionsResult = options.hasOwnProperty(filterUid)
 					? options[filterUid]
 					: options['all'];
+
+				// If all is allowed
+				if (optionsResult === '*') {
+					return optionsResult;
+				}
 
 				return optionsResult.join(',');
 			}

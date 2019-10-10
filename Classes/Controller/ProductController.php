@@ -155,9 +155,7 @@ class ProductController extends AbstractController
                 $filtersUids
             );
 
-            if ($this->hideFilterOptionsNoResult()) {
-                $filtersAvailableOptions = $this->createFiltersAvailableOptions($demand);
-            }
+            $filtersAvailableOptions = $this->createFiltersAvailableOptions($demand, $this->hideFilterOptionsNoResult());
         }
 
         $countResults = $productsNoLimitCount ?? $this->countDemanded($demand);
