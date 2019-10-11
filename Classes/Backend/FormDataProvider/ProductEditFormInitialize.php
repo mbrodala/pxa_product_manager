@@ -44,9 +44,29 @@ class ProductEditFormInitialize implements FormDataProviderInterface
     protected $categoryRepository = null;
 
     /**
+     * @var CategoriesCollector
+     */
+    protected $categoriesCollector = null;
+
+    /**
      * @var AttributeSetRepository
      */
     protected $attributeSetRepository = null;
+
+    /**
+     * @param AttributeSetRepository $attributeSetRepository
+     * @param CategoryRepository $categoryRepository
+     * @param CategoriesCollector $categoriesCollector
+     */
+    public function __construct(
+        AttributeSetRepository $attributeSetRepository,
+        CategoryRepository $categoryRepository,
+        CategoriesCollector $categoriesCollector
+    ) {
+        $this->attributeSetRepository = $attributeSetRepository;
+        $this->categoryRepository = $categoryRepository;
+        $this->categoriesCollector = $categoriesCollector;
+    }
 
     /**
      * Create TCA configuration
@@ -64,7 +84,7 @@ class ProductEditFormInitialize implements FormDataProviderInterface
 
         if (!$isNew) {
             $this->init($result['databaseRow']);
-            $allParentCategoriesUids = $this->getCategoriesCollector()->collectParentsUidsForList(
+            $allParentCategoriesUids = $this->categoriesCollector->collectParentsUidsForList(
                 $this->categoryRepository->findUidsByProduct((int)$result['databaseRow']['uid'])
             );
 
@@ -104,12 +124,9 @@ class ProductEditFormInitialize implements FormDataProviderInterface
      */
     protected function init(array $row): void
     {
-        $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
-
-        $this->categoryRepository = $objectManager->get(CategoryRepository::class);
-        $this->attributeSetRepository = $objectManager->get(AttributeSetRepository::class);
-
-        $this->attributeValues = $this->attributesRawDataToArray($row[DefaultConfigurationProvider::ATTRIBUTES_VALUES_DB_FIELD_NAME]);
+        $this->attributeValues = $this->attributesRawDataToArray(
+            $row[DefaultConfigurationProvider::ATTRIBUTES_VALUES_DB_FIELD_NAME]
+        );
     }
 
     /**
@@ -270,14 +287,6 @@ class ProductEditFormInitialize implements FormDataProviderInterface
         );
 
         $flashMessageQueue->enqueue($flashMessage);
-    }
-
-    /**
-     * @return CategoriesCollector
-     */
-    protected function getCategoriesCollector(): CategoriesCollector
-    {
-        return GeneralUtility::makeInstance(CategoriesCollector::class);
     }
 
     /**

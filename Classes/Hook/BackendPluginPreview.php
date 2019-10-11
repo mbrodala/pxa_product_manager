@@ -31,7 +31,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  * @package TYPO3
  * @subpackage pxa_product_manager
  */
-class PageLayoutView
+class BackendPluginPreview
 {
     use TranslateBeTrait;
 

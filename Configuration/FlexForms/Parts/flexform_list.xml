@@ -8,7 +8,6 @@
                             <label>LLL:EXT:pxa_product_manager/Resources/Private/Language/locallang_be.xlf:flexform.list.entry_navigation_category</label>
                             <config>
                                 <type>select</type>
-                                <renderMode>tree</renderMode>
                                 <renderType>selectTree</renderType>
                                 <treeConfig>
                                     <parentField>parent</parentField>
@@ -19,7 +18,7 @@
                                     </appearance>
                                 </treeConfig>
                                 <foreign_table>sys_category</foreign_table>
-                                <foreign_table_where>AND (sys_category.sys_language_uid = 0 OR sys_category.l10n_parent= 0) ORDER BY sys_category.sorting</foreign_table_where>
+                                <foreign_table_where> AND sys_category.sys_language_uid IN (-1, 0) ORDER BY sys_category.sorting</foreign_table_where>
                                 <size>10</size>
                                 <autoSizeMax>20</autoSizeMax>
                                 <minitems>1</minitems>

@@ -1,0 +1,11 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  Pixelant\PxaProductManager\:
+    resource: '../Classes/*'
+
+  Pixelant\PxaProductManager\Backend\FormDataProvider\ProductEditFormInitialize:
+    public: true

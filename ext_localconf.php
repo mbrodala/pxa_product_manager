@@ -40,7 +40,7 @@ defined('TYPO3_MODE') || die;
     // @codingStandardsIgnoreStart
     // Page module hook
     $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['cms/layout/class.tx_cms_layout.php']['list_type_Info']['pxaproductmanager_pi1']['pxa_product_manager'] =
-        \Pixelant\PxaProductManager\Hook\PageLayoutView::class . '->getExtensionSummary';
+        \Pixelant\PxaProductManager\Hook\BackendPluginPreview::class . '->getExtensionSummary';
 
     /*
      * Hook into form engine in order to create TCA fields configuration on fly

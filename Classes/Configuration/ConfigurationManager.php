@@ -28,7 +28,7 @@ class ConfigurationManager extends ExtbaseConfigurationManager
     /**
      * Initialize
      */
-    protected function initializeConcreteConfigurationManager()
+    protected function initializeConcreteConfigurationManager(): void
     {
         if ($this->environmentService->isEnvironmentInFrontendMode()) {
             $this->concreteConfigurationManager = $this->objectManager->get(

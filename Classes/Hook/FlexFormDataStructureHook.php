@@ -6,8 +6,6 @@ namespace Pixelant\PxaProductManager\Hook;
 use Pixelant\PxaProductManager\Utility\FlexformUtility;
 use TYPO3\CMS\Core\Service\FlexFormService;
 use TYPO3\CMS\Core\SingletonInterface;
-use TYPO3\CMS\Core\Utility\ArrayUtility;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Class FlexFormDataStructureHook
@@ -15,11 +13,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  */
 class FlexFormDataStructureHook implements SingletonInterface
 {
-    /**
-     * Default flexform loaded for all actions
-     * @var string
-     */
-    public static $defaultFlexform = 'EXT:pxa_product_manager/Configuration/FlexForms/Parts/flexform_common.xml';
 
     /**
      * Flexform identifier
@@ -41,11 +34,20 @@ class FlexFormDataStructureHook implements SingletonInterface
     protected $flexformUtility = null;
 
     /**
-     * Initialize
+     * @var FlexFormService
      */
-    public function __construct()
+    protected $flexformService = null;
+
+    /**
+     * Initialize
+     *
+     * @param FlexformUtility $flexformUtility
+     * @param FlexFormService $flexFormService
+     */
+    public function __construct(FlexformUtility $flexformUtility, FlexFormService $flexFormService)
     {
-        $this->flexformUtility = $this->getFlexformUtility();
+        $this->flexformUtility = $flexformUtility;
+        $this->flexformService = $flexFormService;
     }
 
     /**
@@ -69,8 +71,7 @@ class FlexFormDataStructureHook implements SingletonInterface
             && is_string($row['pi_flexform'])
             && !empty($row['pi_flexform'])
         ) {
-            $flexformSettings = GeneralUtility::makeInstance(FlexFormService::class)
-                ->convertFlexFormContentToArray($row['pi_flexform']);
+            $flexformSettings = $this->flexformService->convertFlexFormContentToArray($row['pi_flexform']);
 
             $this->lastSelectedAction = $flexformSettings['switchableControllerActions'];
         }
@@ -93,62 +94,15 @@ class FlexFormDataStructureHook implements SingletonInterface
 
             if (!empty($this->lastSelectedAction)) {
                 // Add default conf
-                $dataStructure = $this->updateDataStructureWithFlexform($dataStructure, static::$defaultFlexform);
+                $dataStructure = $this->flexformUtility->loadDefaultDataStructure($dataStructure);
 
-                $dataStructure = $this->modifyDataStructureAccordingToSelectAction($dataStructure);
+                // Load action structure
+                $dataStructure = $this->flexformUtility->loadActionDataStructure(
+                    $dataStructure,
+                    $this->lastSelectedAction
+                );
             }
         }
-
-        return $dataStructure;
-    }
-
-    /**
-     * Update data structure according to action settings
-     *
-     * @param array $dataStructure
-     * @return array
-     */
-    protected function modifyDataStructureAccordingToSelectAction(array $dataStructure): array
-    {
-        $lastActionConfig = $this->flexformUtility->getSwitchableControllerActionConfiguration($this->lastSelectedAction);
-
-        if (isset($lastActionConfig)) {
-            // Load sub-form
-            foreach ($lastActionConfig['flexforms'] as $flexform) {
-                $dataStructure = $this->updateDataStructureWithFlexform($dataStructure, $flexform);
-            }
-
-            // Exclude fields
-            foreach ($lastActionConfig['excludeFields'] as $excludeField) {
-                foreach ($dataStructure['sheets'] as $sheet => $sheetConf) {
-                    foreach ($sheetConf['ROOT']['el'] as $field => $fieldConf) {
-                        if ($field === $excludeField) {
-                            unset($dataStructure['sheets'][$sheet]['ROOT']['el'][$field]);
-                        }
-                    }
-                }
-            }
-        }
-
-        return $dataStructure;
-    }
-
-    /**
-     * Update data structure
-     *
-     * @param array $dataStructure
-     * @param string $flexformPath
-     * @return array
-     */
-    protected function updateDataStructureWithFlexform(array $dataStructure, string $flexformPath): array
-    {
-        $fullPath = GeneralUtility::getFileAbsFileName($flexformPath);
-        if (!file_exists($fullPath)) {
-            throw new \RuntimeException("Colud not find flexform with path '$fullPath'(given path '$flexformPath')", 1570185225935);
-        }
-
-        $xml = file_get_contents($fullPath);
-        ArrayUtility::mergeRecursiveWithOverrule($dataStructure, GeneralUtility::xml2array($xml));
 
         return $dataStructure;
     }
@@ -170,13 +124,5 @@ class FlexFormDataStructureHook implements SingletonInterface
         }
 
         return $dataStructure;
-    }
-
-    /**
-     * @return FlexformUtility
-     */
-    protected function getFlexformUtility(): FlexformUtility
-    {
-        return GeneralUtility::makeInstance(FlexformUtility::class);
     }
 }
