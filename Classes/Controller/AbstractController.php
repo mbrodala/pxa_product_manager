@@ -30,6 +30,8 @@ use Pixelant\PxaProductManager\Domain\Model\Category;
 use Pixelant\PxaProductManager\Domain\Model\DTO\Demand;
 use Pixelant\PxaProductManager\Domain\Model\DTO\FiltersAvailableOptions;
 use Pixelant\PxaProductManager\Domain\Model\Filter;
+use Pixelant\PxaProductManager\Domain\Model\Product;
+use Pixelant\PxaProductManager\Domain\Repository\AttributeValueRepository;
 use Pixelant\PxaProductManager\Domain\Repository\CategoryRepository;
 use Pixelant\PxaProductManager\Domain\Repository\FilterRepository;
 use Pixelant\PxaProductManager\Domain\Repository\OrderConfigurationRepository;
@@ -90,6 +92,19 @@ class AbstractController extends ActionController
      * @var OrderConfigurationRepository
      */
     protected $orderConfigurationRepository = null;
+
+    /**
+     * @var AttributeValueRepository
+     */
+    protected $attributeValueRepository = null;
+
+    /**
+     * @param AttributeValueRepository $attributeValueRepository
+     */
+    public function injectAttributeValueRepository(AttributeValueRepository $attributeValueRepository)
+    {
+        $this->attributeValueRepository = $attributeValueRepository;
+    }
 
     /**
      * @param ProductRepository $productRepository
@@ -244,6 +259,22 @@ class AbstractController extends ActionController
     }
 
     /**
+     * Create demand without limit
+     *
+     * @param Demand $demand
+     * @return Demand
+     */
+    protected function getDemandNoLimit(Demand $demand): Demand
+    {
+        $demandNoLimit = clone $demand;
+
+        $demandNoLimit->setLimit(0);
+        $demandNoLimit->setOffSet(0);
+
+        return $demandNoLimit;
+    }
+
+    /**
      * Create object with available filters options
      *
      * @param Demand $demand
@@ -252,6 +283,8 @@ class AbstractController extends ActionController
      */
     protected function createFiltersAvailableOptions(Demand $demand, bool $hideNoResult = false): FiltersAvailableOptions
     {
+        $demand = $this->getDemandNoLimit($demand);
+
         $filtersAvailableOptions = GeneralUtility::makeInstance(FiltersAvailableOptions::class);
 
         if (!$hideNoResult) {
@@ -260,168 +293,48 @@ class AbstractController extends ActionController
             return $filtersAvailableOptions;
         }
 
-        $filtersDemand = clone $demand;
-        $filtersDemand->setLimit(0);
-        $filtersDemand->setOffset(0);
-        // Find with all filters
-        $allAvailableProducts = $this->productRepository->findDemandedRaw($filtersDemand);
+        $attributeOptions = $this->attributeValueRepository->findAvailableFilterOptions($demand);
 
-        // Set for non active filters
         $filtersAvailableOptions->setAvailableCategoriesForAll(
-            $this->getAvailableFilteringCategoriesForProducts($allAvailableProducts)
+            $demand->getCategories()
         );
         $filtersAvailableOptions->setAvailableAttributesForAll(
-            $this->getAvailableFilteringAttributesOptionsForProducts($allAvailableProducts)
+            $attributeOptions
         );
+
         // Now get results per filter
-        $demandFilters = $filtersDemand->getFilters();
-        foreach ($demandFilters as $key => $demandFilter) {
+        $filters = $demand->getFilters();
+        foreach ($filters as $key => $demandFilter) {
             /** @var Filter $filter */
             $filter = $this->filterRepository->findByUid((int)$demandFilter['uid']);
             if ($filter === null) {
                 continue;
             }
-            unset($productsNoLimit, $demandNoLimit);
+
             // Get options variants for all 'OR' filters
             if ($filter->getConjunctionAsString() === Filter::CONJUNCTION_OR) {
                 // Create new filters
-                $demandFiltersVariant = $demandFilters;
+                $demandFiltersVariant = $filters;
                 unset($demandFiltersVariant[$key]);
                 // Set new filters
-                $filtersDemand->setFilters($demandFiltersVariant);
+                $demand->setFilters($demandFiltersVariant);
+
                 // Get result for new filters
-                $allAvailableProductsVariant = $this->productRepository->findDemandedRaw($filtersDemand);
                 if ($filter->getType() === Filter::TYPE_CATEGORIES) {
-                    $filtersAvailableOptions->setAvailableCategoriesForFilter(
+                    /*$filtersAvailableOptions->setAvailableCategoriesForFilter(
                         $filter->getUid(),
                         $this->getAvailableFilteringCategoriesForProducts($allAvailableProductsVariant)
-                    );
+                    );*/
                 } else {
                     $filtersAvailableOptions->setAvailableAttributesForFilter(
                         $filter->getUid(),
-                        $this->getAvailableFilteringAttributesOptionsForProducts($allAvailableProductsVariant)
+                        $this->attributeValueRepository->findAvailableFilterOptions($demand)
                     );
                 }
             }
         }
 
         return $filtersAvailableOptions;
-    }
-
-    /**
-     * Remove options without products.
-     *
-     * @param array $products Raw data of products from DB
-     * @return array
-     */
-    protected function getAvailableFilteringAttributesOptionsForProducts($products): array
-    {
-        $attributeUids = [];
-        $availableOptions = [];
-
-        foreach ($products as &$product) {
-            if ($product['serialized_attributes_values']) {
-                $attributeValues = unserialize($product['serialized_attributes_values']);
-                $attributeUids = array_merge(
-                    $attributeUids,
-                    array_keys($attributeValues)
-                );
-                // Save unserialized
-                $product['attributesValues'] = $attributeValues;
-            }
-        }
-        unset($product);
-        $attributeUids = $this->filterOutAttributeUidsNotDropDown(array_unique($attributeUids));
-
-        foreach ($products as $product) {
-            if ($product['attributesValues']) {
-                foreach ($product['attributesValues'] as $attributeUid => $attributeValue) {
-                    if (in_array($attributeUid, $attributeUids, true)) {
-                        // save option uid
-                        $availableOptions = array_merge(
-                            $availableOptions,
-                            GeneralUtility::intExplode(',', $attributeValue, true)
-                        );
-                    }
-                }
-            }
-        }
-
-        return array_values(array_unique($availableOptions));
-    }
-
-    /**
-     * Get available categories for products query raw result
-     *
-     * @param array $productsRawResult
-     * @return array
-     */
-    protected function getAvailableFilteringCategoriesForProducts(array $productsRawResult): array
-    {
-        return $this->categoryRepository->getProductsCategoriesUids(
-            array_map(
-                function ($item) {
-                    return $item['uid'];
-                },
-                $productsRawResult
-            )
-        );
-    }
-
-    /**
-     * Filter attribute uids by dropdown type
-     *
-     * @param array $attributeUids
-     * @return array
-     */
-    protected function filterOutAttributeUidsNotDropDown(array $attributeUids): array
-    {
-        /** @var QueryBuilder $queryBuilder */
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(
-            'tx_pxaproductmanager_domain_model_attribute'
-        );
-
-        /** @noinspection PhpParamsInspection */
-        $queryBuilder->getRestrictions()
-            ->removeAll()
-            ->add(GeneralUtility::makeInstance(DeletedRestriction::class));
-
-        $statement = $queryBuilder
-            ->select('uid')
-            ->from('tx_pxaproductmanager_domain_model_attribute')
-            ->where(
-                $queryBuilder->expr()->orX(
-                    $queryBuilder->expr()->eq(
-                        'type',
-                        $queryBuilder->createNamedParameter(
-                            Attribute::ATTRIBUTE_TYPE_DROPDOWN,
-                            Connection::PARAM_INT
-                        )
-                    ),
-                    $queryBuilder->expr()->eq(
-                        'type',
-                        $queryBuilder->createNamedParameter(
-                            Attribute::ATTRIBUTE_TYPE_MULTISELECT,
-                            Connection::PARAM_INT
-                        )
-                    )
-                ),
-                $queryBuilder->expr()->in(
-                    'uid',
-                    $queryBuilder->createNamedParameter(
-                        $attributeUids,
-                        Connection::PARAM_INT_ARRAY
-                    )
-                )
-            )
-            ->execute();
-
-        $rows = [];
-        while ($row = $statement->fetch()) {
-            $rows[] = $row['uid'];
-        }
-
-        return $rows;
     }
 
     /**

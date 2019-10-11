@@ -27,8 +27,10 @@ namespace Pixelant\PxaProductManager\Domain\Repository;
  ***************************************************************/
 
 use Pixelant\PxaProductManager\Domain\Model\DTO\DemandInterface;
+use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Persistence\Generic\Qom\ConstraintInterface;
+use TYPO3\CMS\Extbase\Persistence\Generic\Storage\Typo3DbQueryParser;
 use TYPO3\CMS\Extbase\Persistence\QueryInterface;
 use TYPO3\CMS\Extbase\Persistence\QueryResultInterface;
 use TYPO3\CMS\Extbase\Persistence\Repository;
@@ -66,6 +68,49 @@ abstract class AbstractDemandRepository extends Repository implements DemandRepo
     public function countByDemand(DemandInterface $demand): int
     {
         return $this->createDemandQuery($demand)->count();
+    }
+
+    /**
+     * Count by demand raw
+     *
+     * @param DemandInterface $demand
+     * @return int
+     */
+    public function countByDemandRaw(DemandInterface $demand): int
+    {
+        $queryBuilder = $this->convertQueryToQueryBuilder(
+            $this->createDemandQuery($demand)
+        );
+
+        $queryBuilder->count('tx_pxaproductmanager_domain_model_product.uid');
+
+        return (int)$queryBuilder->execute()->fetchColumn(0);
+    }
+
+    /**
+     * Create query builder by given demand
+     *
+     * @param DemandInterface $demand
+     * @return QueryBuilder
+     */
+    public function createQueryBuilderByDemand(DemandInterface $demand): QueryBuilder
+    {
+        return $this->convertQueryToQueryBuilder(
+            $this->createDemandQuery($demand)
+        );
+    }
+
+    /**
+     * Convert extbase query to query builder
+     *
+     * @param QueryInterface $query
+     * @return QueryBuilder
+     */
+    protected function convertQueryToQueryBuilder(QueryInterface $query): QueryBuilder
+    {
+        $queryParser = $this->objectManager->get(Typo3DbQueryParser::class);
+
+        return $queryParser->convertQueryToDoctrineQueryBuilder($query);
     }
 
     /**

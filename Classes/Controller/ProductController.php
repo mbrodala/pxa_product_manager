@@ -158,10 +158,6 @@ class ProductController extends AbstractController
             $filtersAvailableOptions = $this->createFiltersAvailableOptions($demand, $this->hideFilterOptionsNoResult());
         }
 
-        $countResults = $productsNoLimitCount ?? $this->countDemanded($demand);
-
-        $limit = (int)$this->settings['limit'];
-
         if ($uid = (int)$this->configurationManager->getContentObject()->data['uid']) {
             $storagePid = ProductUtility::getStoragePidForPlugin($uid);
         }
@@ -170,9 +166,8 @@ class ProductController extends AbstractController
             'demandCategories' => implode(',', $this->settings['demandCategories']),
             'ajaxUrl' => $this->getLazyLoadingUrl(),
             'storagePid' => $storagePid ?? '',
-            'lazyLoadingStop' => ($limit === 0 || $limit >= $countResults) ? 1 : 0,
             'filters' => $filters ?? [],
-            'filtersAvailableOptions' => $filtersAvailableOptions ?? []
+            'filtersAvailableOptions' => $filtersAvailableOptions ?? [],
         ]);
     }
 
@@ -184,11 +179,9 @@ class ProductController extends AbstractController
      */
     public function showAction(Product $product = null)
     {
-        $isPreviewMode = false;
         if ($product === null) {
             // If preview product provided
             $product = $this->getPreviewProduct();
-            $isPreviewMode = true;
         }
 
         // No product found handling
@@ -887,15 +880,11 @@ class ProductController extends AbstractController
      * @param Demand $demand
      * @return int
      */
-    protected function countDemanded(Demand $demand)
+    protected function countDemandedAll(Demand $demand)
     {
-        // Count all products
-        // reset limit
-        $demand = clone ($demand);
-        $demand->setOffSet(0);
-        $demand->setLimit(0);
-
-        return $this->productRepository->countByDemand($demand);
+        return $this->productRepository->countByDemandRaw(
+            $this->getDemandNoLimit($demand)
+        );
     }
 
     /**

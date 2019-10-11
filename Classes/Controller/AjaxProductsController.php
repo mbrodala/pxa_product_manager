@@ -64,12 +64,12 @@ class AjaxProductsController extends ProductController
         if ($this->settings['orderByAllowed']) {
             $demand->setOrderByAllowed($this->settings['orderByAllowed']);
         }
+        $args = $this->request->getArguments();
 
         // Raw result is much faster for ajax ?
         $products = $this->productRepository->findDemanded($demand);
 
-        $productPid = $this->request->hasArgument('pagePid') ?
-            (int)$this->request->getArgument('pagePid') : 0;
+        $productPid = (int)($args['pagePid'] ?? 0);
 
         if ($productPid && $productPid !== (int)$this->settings['pagePid']) {
             $this->settings['pagePid'] = $productPid;
@@ -77,13 +77,9 @@ class AjaxProductsController extends ProductController
             $this->view->assign('settings', $this->settings);
         }
 
-        // Get available options if required
-        $hideFilterOptionsNoResult = $this->request->hasArgument('hideFilterOptionsNoResult')
-            && !empty($this->request->getArgument('hideFilterOptionsNoResult'));
+        $filtersAvailableOptions = $this->createFiltersAvailableOptions($demand, (bool)($args['hideFilterOptionsNoResult'] ?? false));
 
-        $filtersAvailableOptions = $this->createFiltersAvailableOptions($demand, $hideFilterOptionsNoResult);
-
-        $countResults = $productsNoLimitCount ?? $this->countDemanded($demand);
+        $countResults = $this->countDemandedAll($demand);
         $stopLoading = ($demand->getLimit() === 0 || ($demand->getLimit() + $demand->getOffSet() >= $countResults));
 
         $this->view->assign('products', $products);
@@ -92,8 +88,8 @@ class AjaxProductsController extends ProductController
 
         $response = [
             'lazyLoadingStop' => $stopLoading,
-            'countResults' => $countResults,
             'filtersAvailableOptions' => $filtersAvailableOptions,
+            'countResults' => $countResults,
             'html' => $this->view->render()
         ];
 

@@ -106,9 +106,6 @@
 				storage = settings.storagePid.split(',');
 			}
 
-			// check if limit is reached
-			lazyLoadingStop = parseInt(settings.lazyLoadingStop, 10) === 1;
-
 			loadMoreType = parseInt(settings.loadMoreType, 10);
 
 			wishListEnable = parseInt(settings.wishListEnable, 10) === 1;

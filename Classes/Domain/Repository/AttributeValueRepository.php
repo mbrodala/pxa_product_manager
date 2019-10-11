@@ -25,6 +25,9 @@ namespace Pixelant\PxaProductManager\Domain\Repository;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+use Pixelant\PxaProductManager\Domain\Model\Attribute;
+use Pixelant\PxaProductManager\Domain\Model\DTO\Demand;
+use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -37,6 +40,79 @@ use TYPO3\CMS\Extbase\Persistence\Repository;
  */
 class AttributeValueRepository extends Repository
 {
+    /**
+     * @var ProductRepository
+     */
+    protected $productRepository = null;
+
+    /**
+     * @param ProductRepository $productRepository
+     */
+    public function injectProductRepository(ProductRepository $productRepository)
+    {
+        $this->productRepository = $productRepository;
+    }
+
+    /**
+     * Find all available values for product demand
+     *
+     * @param Demand $productDemand
+     * @return array
+     */
+    public function findAvailableFilterOptions(Demand $productDemand): array
+    {
+        $productsQueryBuilder = $this->productRepository->createQueryBuilderByDemand($productDemand);
+        $productsQueryBuilder->select('tx_pxaproductmanager_domain_model_product.uid');
+
+        $queryParameters = [];
+
+        foreach ($productsQueryBuilder->getParameters() as $key => $value) {
+            // prefix array keys with ':'
+            //all non numeric values have to be quoted
+            $queryParameters[':' . $key] = (is_numeric($value)) ? $value : "'" . $value . "'";
+        }
+
+        $productsStatement = strtr($productsQueryBuilder->getSQL(), $queryParameters);
+
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('tx_pxaproductmanager_domain_model_attributevalue');
+
+        $statement = $queryBuilder
+            ->select('tx_pxaproductmanager_domain_model_attributevalue.value')
+            ->from('tx_pxaproductmanager_domain_model_attributevalue')
+            ->join(
+                'tx_pxaproductmanager_domain_model_attributevalue',
+                'tx_pxaproductmanager_domain_model_attribute',
+                'attributes',
+                $queryBuilder->expr()->eq(
+                    'tx_pxaproductmanager_domain_model_attributevalue.attribute',
+                    $queryBuilder->quoteIdentifier('attributes.uid')
+                )
+            )
+            ->where(
+                $queryBuilder->expr()->in(
+                    'tx_pxaproductmanager_domain_model_attributevalue.product',
+                    '(' . $productsStatement . ')'
+                ),
+                $queryBuilder->expr()->in(
+                    'attributes.type',
+                    $queryBuilder->createNamedParameter(
+                        [Attribute::ATTRIBUTE_TYPE_DROPDOWN, Attribute::ATTRIBUTE_TYPE_MULTISELECT],
+                        Connection::PARAM_INT_ARRAY
+                    )
+                )
+            )
+            ->groupBy('tx_pxaproductmanager_domain_model_attributevalue.value')
+            ->execute();
+
+        $availableValues = '';
+        while ($attributeValueRow = $statement->fetch()) {
+            $availableValues .= ',' . $attributeValueRow['value'];
+        }
+
+        $availableValues = GeneralUtility::intExplode(',', $availableValues, true);
+        return array_values(array_unique($availableValues));
+    }
+
     /**
      * Find attribute values by their attribute and option values (higher or lower)
      *

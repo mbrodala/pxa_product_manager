@@ -538,17 +538,21 @@ class ProductRepository extends AbstractDemandRepository
      */
     protected function createCategoryConstraints(QueryInterface $query, array $categories, string $conjunction = 'or')
     {
-        $constraints = [];
+        if (strtolower($conjunction) === 'or') {
+            return $query->in('categories.uid', $categories);
+        } else {
+            $constraints = [];
 
-        foreach ($categories as $category) {
-            $constraints[] = $query->contains('categories', $category);
+            foreach ($categories as $category) {
+                $constraints[] = $query->contains('categories', $category);
+            }
+
+            return $this->createConstraintFromConstraintsArray(
+                $query,
+                $constraints,
+                strtolower($conjunction)
+            );
         }
-
-        return $this->createConstraintFromConstraintsArray(
-            $query,
-            $constraints,
-            strtolower($conjunction)
-        );
     }
 
     /**
