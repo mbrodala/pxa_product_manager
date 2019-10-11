@@ -25,12 +25,11 @@ namespace Pixelant\PxaProductManager\Domain\Repository;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
-use TYPO3\CMS\Extbase\Persistence\QueryInterface;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Persistence\QueryResultInterface;
 use TYPO3\CMS\Extbase\Persistence\Repository;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Database\ConnectionPool;
 
 /**
  * Class AttributeValueRepository
@@ -38,62 +37,6 @@ use TYPO3\CMS\Core\Database\ConnectionPool;
  */
 class AttributeValueRepository extends Repository
 {
-    /**
-     * Help to find in row with list of values (2,3,4) and value 3
-     *
-     * @param QueryInterface $query
-     * @param $field
-     * @param $value
-     * @return \TYPO3\CMS\Extbase\Persistence\Generic\Qom\OrInterface
-     */
-    protected function createInRowQuery(QueryInterface $query, $field, $value)
-    {
-        return $query->logicalOr([
-            $query->like($field, $value . ',%'),
-            $query->like($field, '%,' . $value . ',%'),
-            $query->like($field, '%,' . $value),
-            $query->equals($field, $value)
-        ]);
-    }
-
-    /**
-     * Find attribute value by attribute and its value
-     *
-     * @param $attribute
-     * @param array $values
-     * @param string $filterConjunction
-     * @param bool $rawResult
-     * @return QueryResultInterface|array
-     */
-    public function findAttributeValuesByAttributeAndValues(
-        $attribute,
-        array $values,
-        string $filterConjunction = 'or',
-        $rawResult = false
-    ) {
-        $query = $this->createQuery();
-
-        $query
-            ->getQuerySettings()
-            ->setRespectStoragePage(false);
-
-        $valuesConstraints = [];
-        foreach ($values as $value) {
-            $valuesConstraints[] = $this->createInRowQuery($query, 'value', $value);
-        }
-
-        $query->matching(
-            $query->logicalAnd([
-                $query->equals('attribute', $attribute),
-                $filterConjunction === 'and'
-                    ? $query->logicalAnd($valuesConstraints)
-                    : $query->logicalOr($valuesConstraints)
-            ])
-        );
-
-        return $query->execute($rawResult);
-    }
-
     /**
      * Find attribute values by their attribute and option values (higher or lower)
      *
