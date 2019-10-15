@@ -144,8 +144,6 @@ class ProductController extends AbstractController
             GeneralUtility::intExplode(',', $this->settings['excludeCategories'], true)
         );
 
-        $demand = $this->createDemandFromSettings($this->settings);
-
         if (!empty($this->settings['filters'])) {
             $filtersUids = GeneralUtility::intExplode(',', $this->settings['filters'], true);
             $filters = $this->sortQueryResultsByUidList(
@@ -154,8 +152,6 @@ class ProductController extends AbstractController
                 ),
                 $filtersUids
             );
-
-            $filtersAvailableOptions = $this->createFiltersAvailableOptions($demand, $this->hideFilterOptionsNoResult());
         }
 
         if ($uid = (int)$this->configurationManager->getContentObject()->data['uid']) {
@@ -167,7 +163,6 @@ class ProductController extends AbstractController
             'ajaxUrl' => $this->getLazyLoadingUrl(),
             'storagePid' => $storagePid ?? '',
             'filters' => $filters ?? [],
-            'filtersAvailableOptions' => $filtersAvailableOptions ?? [],
         ]);
     }
 

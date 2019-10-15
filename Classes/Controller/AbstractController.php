@@ -293,19 +293,21 @@ class AbstractController extends ActionController
             return $filtersAvailableOptions;
         }
 
-        $attributeOptions = $this->attributeValueRepository->findAvailableFilterOptions($demand);
+        $productsSubQuery = $this->createProductsSubQuery($demand);
+
+        $attributeOptions = $this->attributeValueRepository->findAvailableFilterOptions($productsSubQuery);
+        $availableCategories = $this->categoryRepository->findCategoriesUidsByProductsQuery($productsSubQuery);
 
         $filtersAvailableOptions->setAvailableCategoriesForAll(
-            $demand->getCategories()
+            $availableCategories
         );
         $filtersAvailableOptions->setAvailableAttributesForAll(
             $attributeOptions
         );
 
         // Now get results per filter
-        $filters = $demand->getFilters();
+        /*$filters = $demand->getFilters();
         foreach ($filters as $key => $demandFilter) {
-            /** @var Filter $filter */
             $filter = $this->filterRepository->findByUid((int)$demandFilter['uid']);
             if ($filter === null) {
                 continue;
@@ -324,7 +326,7 @@ class AbstractController extends ActionController
                     /*$filtersAvailableOptions->setAvailableCategoriesForFilter(
                         $filter->getUid(),
                         $this->getAvailableFilteringCategoriesForProducts($allAvailableProductsVariant)
-                    );*/
+                    );
                 } else {
                     $filtersAvailableOptions->setAvailableAttributesForFilter(
                         $filter->getUid(),
@@ -332,9 +334,31 @@ class AbstractController extends ActionController
                     );
                 }
             }
-        }
+        }*/
 
         return $filtersAvailableOptions;
+    }
+
+    /**
+     * Create products sub-query in order to fetch available options
+     *
+     * @param Demand $demand
+     * @return string
+     */
+    protected function createProductsSubQuery(Demand $demand): string
+    {
+        $productsQueryBuilder = $this->productRepository->createQueryBuilderByDemand($demand);
+        $productsQueryBuilder->select('tx_pxaproductmanager_domain_model_product.uid');
+
+        $queryParameters = [];
+
+        foreach ($productsQueryBuilder->getParameters() as $key => $value) {
+            // prefix array keys with ':'
+            //all non numeric values have to be quoted
+            $queryParameters[':' . $key] = (is_numeric($value)) ? $value : "'" . $value . "'";
+        }
+
+        return strtr($productsQueryBuilder->getSQL(), $queryParameters);
     }
 
     /**

@@ -63,8 +63,6 @@
 				}
 			});
 
-			updateFilteringOptions();
-
 			$selectBoxes.on('change', function () {
 				_selectBoxChanged($(this));
 			});
@@ -174,10 +172,6 @@
 			// jquery
 			$selectBoxes = $(_settings.selectBoxes);
 			$resetButton = $(_settings.resetButton);
-
-			if (_settings.filtersAvailableOptions) {
-				_filtersAvailableOptions = _settings.filtersAvailableOptions
-			}
 		};
 
 		/**

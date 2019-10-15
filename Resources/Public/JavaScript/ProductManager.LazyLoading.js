@@ -85,7 +85,7 @@
 					$loadMoreButton.removeClass(settings.hiddenClass);
 				}
 
-				_runAjax(true, lazyListInitialized === false ? firstLoadingLimit : false);
+				_runAjax(lazyListInitialized === false ? firstLoadingLimit : false);
 			});
 		};
 
@@ -135,7 +135,7 @@
 
 			if (typeof statusHash['filters'] === 'undefined' || statusHash['filters'].length === 0) {
 				// If no filter run first load, otherwise filters will trigger loading
-				_runAjax(false, firstLoadingLimit);
+				_runAjax(firstLoadingLimit);
 			}
 		};
 
@@ -183,12 +183,10 @@
 		/**
 		 * Ajax request to load more items
 		 *
-		 * @param updateFilteringOptions // Update options only on filter changes
 		 * @param overrideLimit allow to override settings limit
 		 * @private
 		 */
-		const _runAjax = function (updateFilteringOptions, overrideLimit) {
-			updateFilteringOptions = updateFilteringOptions || false;
+		const _runAjax = function (overrideLimit) {
 			lazyLoadingInProgress = true;
 			$loaderOverlay.removeClass(settings.hiddenClass);
 
@@ -261,7 +259,7 @@
 					}
 
 					// Update filtering options
-					if (hideFilterOptionsNoResult && updateFilteringOptions) {
+					if (hideFilterOptionsNoResult) {
 						ProductManager.Filtering.setFiltersAvailableOptions(data.filtersAvailableOptions);
 						ProductManager.Filtering.updateFilteringOptions();
 					}

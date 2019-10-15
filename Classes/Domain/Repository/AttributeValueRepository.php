@@ -26,7 +26,6 @@ namespace Pixelant\PxaProductManager\Domain\Repository;
  ***************************************************************/
 
 use Pixelant\PxaProductManager\Domain\Model\Attribute;
-use Pixelant\PxaProductManager\Domain\Model\DTO\Demand;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
@@ -41,39 +40,13 @@ use TYPO3\CMS\Extbase\Persistence\Repository;
 class AttributeValueRepository extends Repository
 {
     /**
-     * @var ProductRepository
-     */
-    protected $productRepository = null;
-
-    /**
-     * @param ProductRepository $productRepository
-     */
-    public function injectProductRepository(ProductRepository $productRepository)
-    {
-        $this->productRepository = $productRepository;
-    }
-
-    /**
      * Find all available values for product demand
      *
-     * @param Demand $productDemand
+     * @param string $productsSubQuery
      * @return array
      */
-    public function findAvailableFilterOptions(Demand $productDemand): array
+    public function findAvailableFilterOptions(string $productsSubQuery): array
     {
-        $productsQueryBuilder = $this->productRepository->createQueryBuilderByDemand($productDemand);
-        $productsQueryBuilder->select('tx_pxaproductmanager_domain_model_product.uid');
-
-        $queryParameters = [];
-
-        foreach ($productsQueryBuilder->getParameters() as $key => $value) {
-            // prefix array keys with ':'
-            //all non numeric values have to be quoted
-            $queryParameters[':' . $key] = (is_numeric($value)) ? $value : "'" . $value . "'";
-        }
-
-        $productsStatement = strtr($productsQueryBuilder->getSQL(), $queryParameters);
-
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('tx_pxaproductmanager_domain_model_attributevalue');
 
         $statement = $queryBuilder
@@ -91,7 +64,7 @@ class AttributeValueRepository extends Repository
             ->where(
                 $queryBuilder->expr()->in(
                     'tx_pxaproductmanager_domain_model_attributevalue.product',
-                    '(' . $productsStatement . ')'
+                    '(' . $productsSubQuery . ')'
                 ),
                 $queryBuilder->expr()->in(
                     'attributes.type',

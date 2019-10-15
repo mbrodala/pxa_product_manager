@@ -153,20 +153,18 @@ class CategoryRepository extends \TYPO3\CMS\Extbase\Domain\Repository\CategoryRe
     /**
      * Get categories uids
      *
-     * @param array $productsUids
+     * @param string $productsSubQuery
      * @return array
      */
-    public function getProductsCategoriesUids(array $productsUids): array
+    public function findCategoriesUidsByProductsQuery(string $productsSubQuery): array
     {
-        $categories = [];
-
         /** @var QueryBuilder $queryBuilder */
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(
             'sys_category_record_mm'
         );
         $queryBuilder->getRestrictions()->removeAll();
 
-        $statement = $queryBuilder
+        $categories = $queryBuilder
             ->select('uid_local')
             ->from('sys_category_record_mm')
             ->where(
@@ -186,17 +184,11 @@ class CategoryRepository extends \TYPO3\CMS\Extbase\Domain\Repository\CategoryRe
                 ),
                 $queryBuilder->expr()->in(
                     'uid_foreign',
-                    $queryBuilder->createNamedParameter(
-                        $productsUids,
-                        Connection::PARAM_INT_ARRAY
-                    )
+                    '(' . $productsSubQuery . ')'
                 )
             )
-            ->execute();
-
-        while ($uid = $statement->fetchColumn(0)) {
-            $categories[] = $uid;
-        }
+            ->execute()
+            ->fetchAll(\PDO::FETCH_COLUMN);
 
         return array_values(array_unique($categories));
     }
