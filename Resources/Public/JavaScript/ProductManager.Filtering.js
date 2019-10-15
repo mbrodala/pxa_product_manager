@@ -243,6 +243,13 @@
 				} else {
 					let $selectFilter = $(this);
 
+					// Skip updating filter if it was last applied filter and conjunction is OR
+					if (_lastFilterBox !== null
+						&& identifier === _lastFilterBox.data('identifier')
+						&& $selectFilter.data('filter-conjunction') === 'or') {
+						return;
+					}
+
 					let availableListOfOptionsForFilter = _getAvailableListOfOptionsForFilter(filterUid, filterType);
 					$selectFilter.find('option').each(function () {
 						let $option = $(this);
