@@ -108,6 +108,262 @@ class ProductRepository extends AbstractDemandRepository
      * Override basic method. Set special ordering for categories if it's not multiple
      *
      * @param DemandInterface|Demand $demand
+     * @return array
+     */
+    public function getAvailableFilteringAttributesByDemand(DemandInterface $demand): array
+    {
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('sys_category_record_mm');
+
+        // standard query part, pid and allowed categories
+        $queryBuilder->select('aval.value as value')
+            ->from('sys_category_record_mm', 'allowedProductCategories')
+            ->join(
+                'allowedProductCategories',
+                'tx_pxaproductmanager_domain_model_product',
+                'product',
+                $queryBuilder->expr()->eq(
+                    'product.uid',
+                    $queryBuilder->quoteIdentifier('allowedProductCategories.uid_foreign')
+                )
+            )
+            ->join(
+                'product',
+                'tx_pxaproductmanager_domain_model_attributevalue',
+                'aval',
+                $queryBuilder->expr()->eq(
+                    'aval.product',
+                    $queryBuilder->quoteIdentifier('product.uid')
+                )
+            )
+            ->join(
+                'aval',
+                'tx_pxaproductmanager_domain_model_attribute',
+                'attr',
+                $queryBuilder->expr()->eq(
+                    'attr.uid',
+                    $queryBuilder->quoteIdentifier('aval.attribute')
+                )
+            )
+            ->where(
+                $queryBuilder->expr()->in(
+                    'allowedProductCategories.uid_local',
+                    $queryBuilder->createNamedParameter(
+                        $demand->getCategories(),
+                        \TYPO3\CMS\Core\Database\Connection::PARAM_INT_ARRAY
+                    )
+                ),
+                $queryBuilder->expr()->in(
+                    'product.pid',
+                    $queryBuilder->createNamedParameter(
+                        $demand->getStoragePid(),
+                        \TYPO3\CMS\Core\Database\Connection::PARAM_INT_ARRAY
+                    )
+                ),
+                $queryBuilder->expr()->in(
+                    'attr.type',
+                    $queryBuilder->createNamedParameter(
+                        [4,5],
+                        \TYPO3\CMS\Core\Database\Connection::PARAM_INT_ARRAY
+                    )
+                ),
+                $queryBuilder->expr()->neq(
+                    'aval.value',
+                    $queryBuilder->createNamedParameter('', \PDO::PARAM_STR)
+                ),
+                $queryBuilder->expr()->gt(
+                    'aval.value',
+                    $queryBuilder->createNamedParameter(0, \PDO::PARAM_INT)
+                )
+            )
+            ->groupBy('aval.value');
+
+        $this->addQueryBuilderIncludeDiscontinued($demand, $queryBuilder);
+
+        $this->addQueryBuilderFilters($demand, $queryBuilder);
+
+        if ($demand->getLimit()) {
+            $queryBuilder->setMaxResults($demand->getLimit());
+        }
+        if ($demand->getOffSet()) {
+            $queryBuilder->setFirstResult($demand->getOffSet());
+        }
+
+        // $statement = $this->getSQL($queryBuilder);
+        $attributes = $queryBuilder->execute()->fetchAll();
+        $attributes = array_column($attributes, 'value');
+        $attributes = array_map('intval', $attributes);
+
+        return $attributes ?? [];
+    }
+
+    /**
+     * Override basic method. Set special ordering for categories if it's not multiple
+     *
+     * @param DemandInterface|Demand $demand
+     * @return array
+     */
+    public function getAvailableFilteringCategoriesByDemand(DemandInterface $demand, Filter $filter): array
+    {
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('sys_category_record_mm');
+        $queryBuilder->getRestrictions()->removeAll();
+        // standard query part, pid and allowed categories
+        $queryBuilder->select(
+            'level1.uid as l1',
+            'level2.uid as l2',
+            'level3.uid as l3',
+            'level4.uid as l4',
+            'level5.uid as l5',
+            'level6.uid as l6'
+        )
+            ->from('sys_category_record_mm', 'allowedProductCategories')
+            ->join(
+                'allowedProductCategories',
+                'tx_pxaproductmanager_domain_model_product',
+                'product',
+                $queryBuilder->expr()->eq(
+                    'product.uid',
+                    $queryBuilder->quoteIdentifier('allowedProductCategories.uid_foreign')
+                )
+            )
+            ->join(
+                'product',
+                'tx_pxaproductmanager_domain_model_attributevalue',
+                'aval',
+                $queryBuilder->expr()->eq(
+                    'aval.product',
+                    $queryBuilder->quoteIdentifier('product.uid')
+                )
+            )
+            ->join(
+                'aval',
+                'tx_pxaproductmanager_domain_model_attribute',
+                'attr',
+                $queryBuilder->expr()->eq(
+                    'attr.uid',
+                    $queryBuilder->quoteIdentifier('aval.attribute')
+                )
+            )
+            ->join(
+                'allowedProductCategories',
+                'sys_category',
+                'level1',
+                $queryBuilder->expr()->eq(
+                    'level1.uid',
+                    $queryBuilder->quoteIdentifier('allowedProductCategories.uid_local')
+                )
+            )
+            ->leftJoin(
+                'level1',
+                'sys_category',
+                'level2',
+                $queryBuilder->expr()->eq(
+                    'level2.uid',
+                    $queryBuilder->quoteIdentifier('level1.parent')
+                )
+            )
+            ->leftJoin(
+                'level2',
+                'sys_category',
+                'level3',
+                $queryBuilder->expr()->eq(
+                    'level3.uid',
+                    $queryBuilder->quoteIdentifier('level2.parent')
+                )
+            )
+            ->leftJoin(
+                'level3',
+                'sys_category',
+                'level4',
+                $queryBuilder->expr()->eq(
+                    'level4.uid',
+                    $queryBuilder->quoteIdentifier('level3.parent')
+                )
+            )
+            ->leftJoin(
+                'level4',
+                'sys_category',
+                'level5',
+                $queryBuilder->expr()->eq(
+                    'level5.uid',
+                    $queryBuilder->quoteIdentifier('level4.parent')
+                )
+            )
+            ->leftJoin(
+                'level5',
+                'sys_category',
+                'level6',
+                $queryBuilder->expr()->eq(
+                    'level6.uid',
+                    $queryBuilder->quoteIdentifier('level5.parent')
+                )
+            )
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'product.deleted',
+                    $queryBuilder->createNamedParameter(0, \PDO::PARAM_INT)
+                ),
+                $queryBuilder->expr()->in(
+                    'allowedProductCategories.uid_local',
+                    $queryBuilder->createNamedParameter(
+                        $demand->getCategories(),
+                        \TYPO3\CMS\Core\Database\Connection::PARAM_INT_ARRAY
+                    )
+                ),
+                $queryBuilder->expr()->in(
+                    'product.pid',
+                    $queryBuilder->createNamedParameter(
+                        $demand->getStoragePid(),
+                        \TYPO3\CMS\Core\Database\Connection::PARAM_INT_ARRAY
+                    )
+                )
+            )
+            ->groupBy(
+                'level1.uid',
+                'level2.uid',
+                'level3.uid',
+                'level4.uid',
+                'level5.uid',
+                'level6.uid'
+            );
+
+        $this->addQueryBuilderIncludeDiscontinued($demand, $queryBuilder);
+
+        $this->addQueryBuilderFilters($demand, $queryBuilder);
+
+        if ($demand->getLimit()) {
+            $queryBuilder->setMaxResults($demand->getLimit());
+        }
+        if ($demand->getOffSet()) {
+            $queryBuilder->setFirstResult($demand->getOffSet());
+        }
+
+        // $statement = $this->getSQL($queryBuilder);
+        $categories = $queryBuilder->execute()->fetchAll();
+
+        if (!empty($categories) && count($categories) > 0) {
+            // Find "parent category column" (should be same in all records)
+            $parentCategory = $filter->getParentCategory()->getUid();
+            $parentIndex = 0;
+            foreach ($categories[0] as $key => $column) {
+                // Check parent index, we only need categories from one "higher level"
+                if ($column == $parentCategory) {
+                    $parentIndex = (int)str_replace('l', '', $key) - 1;
+                    break;
+                }
+            }
+            $targetColumn = 'l' . $parentIndex;
+            $categoryList = array_values(array_unique(array_column($categories, $targetColumn)));
+        }
+
+        return $categoryList ?? [];
+    }
+
+    /**
+     * Override basic method. Set special ordering for categories if it's not multiple
+     *
+     * @param DemandInterface|Demand $demand
      * @return QueryResultInterface
      */
     public function findDemanded(DemandInterface $demand): QueryResultInterface

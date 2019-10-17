@@ -144,7 +144,18 @@ class ProductController extends AbstractController
             GeneralUtility::intExplode(',', $this->settings['excludeCategories'], true)
         );
 
+        if ($uid = (int)$this->configurationManager->getContentObject()->data['uid']) {
+            $storagePid = ProductUtility::getStoragePidForPlugin($uid);
+        }
+
         $demand = $this->createDemandFromSettings($this->settings);
+        if (empty($demand->getStoragePid())) {
+            if (is_array($storagePid)) {
+                $demand->setStoragePid($storagePid);
+            } else {
+                $demand->setStoragePid([$storagePid]);
+            }
+        }
 
         if (!empty($this->settings['filters'])) {
             $filtersUids = GeneralUtility::intExplode(',', $this->settings['filters'], true);
@@ -161,12 +172,7 @@ class ProductController extends AbstractController
         }
 
         $countResults = $productsNoLimitCount ?? $this->countDemanded($demand);
-
         $limit = (int)$this->settings['limit'];
-
-        if ($uid = (int)$this->configurationManager->getContentObject()->data['uid']) {
-            $storagePid = ProductUtility::getStoragePidForPlugin($uid);
-        }
 
         $this->view->assignMultiple([
             'demandCategories' => implode(',', $this->settings['demandCategories']),
@@ -174,7 +180,8 @@ class ProductController extends AbstractController
             'storagePid' => $storagePid ?? '',
             'lazyLoadingStop' => ($limit === 0 || $limit >= $countResults) ? 1 : 0,
             'filters' => $filters ?? [],
-            'filtersAvailableOptions' => $filtersAvailableOptions ?? []
+            'filtersAvailableOptions' => $filtersAvailableOptions ?? [],
+            'availableFilters' => $this->settings['filters'] ?? '',
         ]);
     }
 

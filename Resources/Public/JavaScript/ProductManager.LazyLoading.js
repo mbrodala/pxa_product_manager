@@ -52,7 +52,8 @@
 			firstLoadingLimit = 0,
 			lazyListInitialized = false,
 			filtersConjunction = 'and',
-			hideFilterOptionsNoResult = 0;
+			hideFilterOptionsNoResult = 0,
+			availableFilters = '';
 
 		/**
 		 * Main init function
@@ -105,7 +106,6 @@
 			if (typeof settings.storagePid !== 'undefined' && settings.storagePid !== '') {
 				storage = settings.storagePid.split(',');
 			}
-
 			// check if limit is reached
 			lazyLoadingStop = parseInt(settings.lazyLoadingStop, 10) === 1;
 
@@ -202,17 +202,19 @@
 				limit: limit,
 				filters: filteringData,
 				storagePid: storage,
+				dataId: settings.dataId,
 				orderBy: settings.orderBy,
 				orderDirection: settings.orderDirection,
 				includeDiscontinued: settings.includeDiscontinued,
-				filtersConjunction: filtersConjunction,
+				filtersConjunction: filtersConjunction
 			};
 
 			let data = {
 				tx_pxaproductmanager_pi1: {
 					demand: demand,
 					pagePid: settings.pagePid,
-					hideFilterOptionsNoResult: hideFilterOptionsNoResult
+					hideFilterOptionsNoResult: hideFilterOptionsNoResult,
+					availableFilters: settings.availableFilters
 				}
 			};
 

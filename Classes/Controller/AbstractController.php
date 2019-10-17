@@ -254,45 +254,72 @@ class AbstractController extends ActionController
         $filtersDemand = clone $demand;
         $filtersDemand->setLimit(0);
         $filtersDemand->setOffset(0);
+        $filtersDemand->setFilters([]);
+        $filterAttributesOrList = [];
+
         $filtersAvailableOptions = GeneralUtility::makeInstance(FiltersAvailableOptions::class);
-        // Find with all filters
-        $allAvailableProducts = $this->productRepository->findDemandedRaw($filtersDemand);
 
         // Set for non active filters
         $filtersAvailableOptions->setAvailableCategoriesForAll(
-            $this->getAvailableFilteringCategoriesForProducts($allAvailableProducts)
+            $demand->getCategories()
         );
         $filtersAvailableOptions->setAvailableAttributesForAll(
-            $this->getAvailableFilteringAttributesOptionsForProducts($allAvailableProducts)
+            $this->productRepository->getAvailableFilteringAttributesByDemand($filtersDemand)
         );
-        // Now get results per filter
-        $demandFilters = $filtersDemand->getFilters();
-        foreach ($demandFilters as $key => $demandFilter) {
-            /** @var Filter $filter */
-            $filter = $this->filterRepository->findByUid((int)$demandFilter['uid']);
-            if ($filter === null) {
-                continue;
+        // restore demand filters
+        $filtersDemand->setFilters($demand->getFilters());
+        $allFilteredOptions = $this->productRepository->getAvailableFilteringAttributesByDemand($filtersDemand);
+
+        if (!empty($demand->getFilters())) {
+            $tmpFilterIds = array_values(array_unique(array_column($demand->getFilters(), 'uid')));
+            if (!empty($tmpFilterIds)) {
+                $tmpFilters = $this->filterRepository->findByUidList($tmpFilterIds);
+                if (!empty($tmpFilters)) {
+                    foreach ($tmpFilters as $key => $tmpFilter) {
+                        if ($tmpFilter->getType() === Filter::TYPE_ATTRIBUTES) {
+                            array_push($filterAttributesOrList, $tmpFilter->getUid());
+                        }
+                    }
+                }
             }
-            unset($productsNoLimit, $demandNoLimit);
-            // Get options variants for all 'OR' filters
-            if ($filter->getConjunctionAsString() === Filter::CONJUNCTION_OR) {
-                // Create new filters
-                $demandFiltersVariant = $demandFilters;
-                unset($demandFiltersVariant[$key]);
-                // Set new filters
-                $filtersDemand->setFilters($demandFiltersVariant);
-                // Get result for new filters
-                $allAvailableProductsVariant = $this->productRepository->findDemandedRaw($filtersDemand);
+        }
+        if (!empty($this->settings['filters'])) {
+            $filtersUids = GeneralUtility::intExplode(',', $this->settings['filters'], true);
+            $filters = $this->sortQueryResultsByUidList(
+                $this->filterRepository->findByUidList(
+                    $filtersUids
+                ),
+                $filtersUids
+            );
+            foreach ($filters as $key => $filter) {
                 if ($filter->getType() === Filter::TYPE_CATEGORIES) {
-                    $filtersAvailableOptions->setAvailableCategoriesForFilter(
-                        $filter->getUid(),
-                        $this->getAvailableFilteringCategoriesForProducts($allAvailableProductsVariant)
+                    $filterCategories = $this->productRepository->getAvailableFilteringCategoriesByDemand(
+                        $filtersDemand,
+                        $filter
                     );
-                } else {
-                    $filtersAvailableOptions->setAvailableAttributesForFilter(
-                        $filter->getUid(),
-                        $this->getAvailableFilteringAttributesOptionsForProducts($allAvailableProductsVariant)
-                    );
+                    if (count($filterCategories) > 0) {
+                        $filtersAvailableOptions->setAvailableCategoriesForFilter(
+                            $filter->getUid(),
+                            $filterCategories
+                        );
+                    }
+                } elseif ($filter->getType() === Filter::TYPE_ATTRIBUTES) {
+                    // TODO: fix for "or"
+                    $filterOptions = [];
+                    $options = $filter->getAttribute()->getOptions();
+                    foreach ($options as $key => $option) {
+                        array_push($filterOptions, $option->getUid());
+                    }
+                    if (!in_array($filter->getUid(), $filterAttributesOrList)) {
+                        // TODO: Will allow all even if not possible....
+                        $filterOptions = array_values(array_intersect($allFilteredOptions, $filterOptions));
+                    }
+                    if (count($filterOptions) > 0) {
+                        $filtersAvailableOptions->setAvailableAttributesForFilter(
+                            $filter->getUid(),
+                            $filterOptions
+                        );
+                    }
                 }
             }
         }

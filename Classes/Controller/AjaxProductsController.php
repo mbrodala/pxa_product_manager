@@ -64,7 +64,6 @@ class AjaxProductsController extends ProductController
         if ($this->settings['orderByAllowed']) {
             $demand->setOrderByAllowed($this->settings['orderByAllowed']);
         }
-
         // Raw result is much faster for ajax ?
         $products = $this->productRepository->findDemanded($demand);
 
@@ -75,6 +74,12 @@ class AjaxProductsController extends ProductController
             $this->settings['pagePid'] = $productPid;
             // Assign modified value from flexform
             $this->view->assign('settings', $this->settings);
+        }
+
+        if ($this->request->hasArgument('availableFilters')
+            && !empty($this->request->getArgument('availableFilters'))
+        ) {
+            $this->settings['filters'] = $this->request->getArgument('availableFilters');
         }
 
         // Get available options if required
