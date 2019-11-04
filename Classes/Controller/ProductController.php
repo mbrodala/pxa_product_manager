@@ -115,6 +115,16 @@ class ProductController extends AbstractController
                 $this->settings['demandCategories'] = [$category->getUid()];
 
                 $demand = $this->createDemandFromSettings($this->settings);
+                if (empty($demand->getStoragePid())) {
+                    if ($uid = (int)$this->configurationManager->getContentObject()->data['uid']) {
+                        $storagePid = ProductUtility::getStoragePidForPlugin($uid);
+                    }
+                    if (is_array($storagePid)) {
+                        $demand->setStoragePid($storagePid);
+                    } else {
+                        $demand->setStoragePid([$storagePid]);
+                    }
+                }
                 $products = $this->productRepository->findDemanded($demand);
             }
 
