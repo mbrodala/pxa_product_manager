@@ -93,6 +93,11 @@ class ProductController extends AbstractController
         );
 
         if ($category) {
+            // Set meta tags
+            $this->setMetaTags(
+                $category->getMetaDescription(),
+                $category->getKeywords()
+            );
             /** @var Category[] $subCategories */
             $subCategories = $this->categoryRepository->findByParent(
                 $category,
@@ -216,6 +221,12 @@ class ProductController extends AbstractController
             GeneralUtility::makeInstance(PageRenderer::class)->addJsInlineCode(
                 'pxaproductmanager_current_product_uid',
                 'const pxaproductmanager_current_product_uid=' . $product->getUid()
+            );
+
+            // Set meta tags
+            $this->setMetaTags(
+                $product->getMetaDescription(),
+                $product->getKeywords()
             );
 
             // check if categories have a custom single view template set

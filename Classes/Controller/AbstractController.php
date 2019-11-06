@@ -512,4 +512,30 @@ class AbstractController extends ActionController
     {
         return GeneralUtility::makeInstance(PageRenderer::class);
     }
+
+    /**
+     * Set Meta Tags in PageRenderer
+     *
+     * @param string $description Meta Description value
+     * @param string $keywords    Meta Keywords value
+     * @return void
+     */
+    protected function setMetaTags(string $description, string $keywords): void
+    {
+        // Set meta tags from category
+        if (!empty($description)) {
+            $this->getPageRenderer()->setMetaTag(
+                'name',
+                'description',
+                substr($description, 0, 150)
+            );
+        }
+        if (!empty($keywords)) {
+            $this->getPageRenderer()->setMetaTag(
+                'name',
+                'keywords',
+                $keywords
+            );
+        }
+    }
 }
