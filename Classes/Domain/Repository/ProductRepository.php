@@ -341,20 +341,24 @@ class ProductRepository extends AbstractDemandRepository
 
         // $statement = $this->getSQL($queryBuilder);
         $categories = $queryBuilder->execute()->fetchAll();
+        $childCategories = [];
 
         if (!empty($categories) && count($categories) > 0) {
             // Find "parent category column" (should be same in all records)
             $parentCategory = $filter->getParentCategory()->getUid();
             $parentIndex = 0;
-            foreach ($categories[0] as $key => $column) {
-                // Check parent index, we only need categories from one "higher level"
-                if ($column == $parentCategory) {
-                    $parentIndex = (int)str_replace('l', '', $key) - 1;
-                    break;
+            // Need to check all rows if not in same level
+            // And find "parent category column" and add category
+            foreach ($categories as $index => $columns) {
+                foreach ($columns as $key => $value) {
+                    if ($value == $parentCategory) {
+                        $parentIndex = (int)str_replace('l', '', $key) - 1;
+                        $targetColumn = 'l' . $parentIndex;
+                        array_push($childCategories, $categories[$index][$targetColumn]);
+                    }
                 }
             }
-            $targetColumn = 'l' . $parentIndex;
-            $categoryList = array_values(array_unique(array_column($categories, $targetColumn)));
+            $categoryList = array_values(array_unique($childCategories));
         }
 
         return $categoryList ?? [];
