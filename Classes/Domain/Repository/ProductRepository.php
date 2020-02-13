@@ -376,23 +376,6 @@ class ProductRepository extends AbstractDemandRepository
             // return parent::findDemanded($demand);
             $queryBuilder = $this->getFindDemandedQueryBuilder($demand);
             $statement = $this->getSQL($queryBuilder);
-            /*
-            // @TODO: Start of debug, remember to remove when debug is done!
-            error_log(
-                print_r(
-                    [
-                        '@' => date('Y-m-d H:i:s'),
-                        'class' => __CLASS__,
-                        'function' => __FUNCTION__,
-                        'statement' => $statement,
-                    ],
-                    true
-                ),
-                3,
-                '/tmp/php_debug.log'
-            );
-            // @TODO: End of debug, remember to remove when debug is done!
-            */
             $query = $this->createQuery();
             return $query->statement($statement)->execute();
         } else {
@@ -886,30 +869,32 @@ class ProductRepository extends AbstractDemandRepository
     {
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
             ->getQueryBuilderForTable('tx_pxaproductmanager_domain_model_product');
+        $subQueryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('sys_category_record_mm');
 
         // standard query part, pid and allowed categories
         $queryBuilder->select('product.*')
             ->from('tx_pxaproductmanager_domain_model_product', 'product')
-            ->join(
-                'product',
-                'sys_category_record_mm',
-                'allowedProductCategories',
-                $queryBuilder->expr()->eq(
-                    'allowedProductCategories.uid_foreign',
-                    $queryBuilder->quoteIdentifier('product.uid')
-                )
-            )
             ->where(
                 $queryBuilder->expr()->eq(
                     'product.pid',
                     $queryBuilder->createNamedParameter($demand->getStoragePid(), \PDO::PARAM_INT)
                 ),
                 $queryBuilder->expr()->in(
-                    'allowedProductCategories.uid_local',
-                    $queryBuilder->createNamedParameter(
-                        $demand->getCategories(),
-                        \TYPO3\CMS\Core\Database\Connection::PARAM_INT_ARRAY
-                    )
+                    'product.uid',
+                    $subQueryBuilder
+                        ->select('uid_foreign')
+                        ->from('sys_category_record_mm')
+                        ->where(
+                            $queryBuilder->expr()->in(
+                                'sys_category_record_mm.uid_local',
+                                $queryBuilder->createNamedParameter(
+                                    $demand->getCategories(),
+                                    \TYPO3\CMS\Core\Database\Connection::PARAM_INT_ARRAY
+                                )
+                            )
+                        )
+                        ->getSQL()
                 )
             );
 
@@ -925,7 +910,6 @@ class ProductRepository extends AbstractDemandRepository
         if ($demand->getOffSet()) {
             $queryBuilder->setFirstResult($demand->getOffSet());
         }
-
         return $queryBuilder;
     }
 
